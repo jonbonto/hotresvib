@@ -12,7 +12,8 @@ CREATE TABLE rooms (
     hotel_id UUID NOT NULL REFERENCES hotels(id) ON DELETE RESTRICT,
     number TEXT NOT NULL,
     type TEXT NOT NULL,
-    base_rate NUMERIC(10, 2) NOT NULL
+    base_rate NUMERIC(10, 2) NOT NULL,
+    base_rate_currency TEXT NOT NULL
 );
 
 CREATE INDEX idx_rooms_hotel_id ON rooms(hotel_id);
@@ -31,6 +32,7 @@ CREATE TABLE reservations (
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     total_amount NUMERIC(10, 2) NOT NULL,
+    total_amount_currency TEXT NOT NULL,
     status TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
@@ -39,11 +41,12 @@ CREATE INDEX idx_reservations_user_id ON reservations(user_id);
 CREATE INDEX idx_reservations_room_id ON reservations(room_id);
 
 CREATE TABLE availability (
+    id UUID PRIMARY KEY,
     room_id UUID NOT NULL REFERENCES rooms(id) ON DELETE RESTRICT,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     available INT NOT NULL,
-    PRIMARY KEY (room_id, start_date, end_date)
+    UNIQUE (room_id, start_date, end_date)
 );
 
 ALTER TABLE availability
@@ -57,6 +60,7 @@ CREATE TABLE pricing_rules (
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     price NUMERIC(10, 2) NOT NULL,
+    price_currency TEXT NOT NULL,
     description TEXT
 );
 
@@ -66,6 +70,7 @@ CREATE TABLE payments (
     id TEXT PRIMARY KEY,
     reservation_id UUID NOT NULL REFERENCES reservations(id) ON DELETE RESTRICT,
     amount NUMERIC(10, 2) NOT NULL,
+    amount_currency TEXT NOT NULL,
     status TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL
 );

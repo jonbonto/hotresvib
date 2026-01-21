@@ -8,14 +8,19 @@ import java.util.concurrent.ConcurrentHashMap
 
 class InMemoryUserRepository : UserRepository {
     private val storage = ConcurrentHashMap<UserId, User>()
+    private val lock = Any()
 
     override fun findById(id: UserId): User? = storage[id]
 
     override fun findByEmail(email: EmailAddress): User? =
-        storage.values.firstOrNull { it.email == email }
+        synchronized(lock) {
+            storage.values.firstOrNull { it.email == email }
+        }
 
     override fun save(user: User): User {
-        storage[user.id] = user
+        synchronized(lock) {
+            storage[user.id] = user
+        }
         return user
     }
 }

@@ -6,6 +6,11 @@ import com.hotresvib.domain.shared.UserId
 value class EmailAddress(val value: String) {
     init {
         require(value.isNotBlank()) { "Email is required" }
+        require(EMAIL_REGEX.matches(value)) { "Invalid email format" }
+    }
+
+    private companion object {
+        private val EMAIL_REGEX = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
     }
 }
 

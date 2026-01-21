@@ -8,14 +8,19 @@ import java.util.concurrent.ConcurrentHashMap
 
 class InMemoryReservationRepository : ReservationRepository {
     private val storage = ConcurrentHashMap<ReservationId, Reservation>()
+    private val lock = Any()
 
     override fun findById(id: ReservationId): Reservation? = storage[id]
 
     override fun findByUserId(userId: UserId): List<Reservation> =
-        storage.values.filter { it.userId == userId }
+        synchronized(lock) {
+            storage.values.filter { it.userId == userId }
+        }
 
     override fun save(reservation: Reservation): Reservation {
-        storage[reservation.id] = reservation
+        synchronized(lock) {
+            storage[reservation.id] = reservation
+        }
         return reservation
     }
 }

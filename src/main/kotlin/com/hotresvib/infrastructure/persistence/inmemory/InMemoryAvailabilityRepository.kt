@@ -8,23 +8,28 @@ import java.util.concurrent.ConcurrentHashMap
 
 class InMemoryAvailabilityRepository : AvailabilityRepository {
     private val storage = ConcurrentHashMap<RoomId, MutableList<Availability>>()
+    private val lock = Any()
 
     override fun findByRoomId(roomId: RoomId): List<Availability> =
-        storage[roomId]?.toList().orEmpty()
+        synchronized(lock) {
+            storage[roomId]?.toList().orEmpty()
+        }
 
     override fun save(availability: Availability): Availability {
-        storage.compute(availability.roomId) { _, existing ->
-            val updated = existing ?: mutableListOf()
-            val index = updated.indexOfFirst { it.range == availability.range }
-            if (index >= 0) {
-                updated[index] = availability
-            } else {
-                require(updated.none { rangesOverlap(it.range, availability.range) }) {
-                    "Availability ranges cannot overlap for the same room"
+        synchronized(lock) {
+            storage.compute(availability.roomId) { _, existing ->
+                val updated = existing ?: mutableListOf()
+                val index = updated.indexOfFirst { it.range == availability.range }
+                if (index >= 0) {
+                    updated[index] = availability
+                } else {
+                    require(updated.none { rangesOverlap(it.range, availability.range) }) {
+                        "Availability ranges cannot overlap for the same room"
+                    }
+                    updated.add(availability)
                 }
-                updated.add(availability)
+                updated
             }
-            updated
         }
         return availability
     }
