@@ -48,7 +48,7 @@ CREATE TABLE availability (
 
 ALTER TABLE availability
     ADD CONSTRAINT availability_no_overlap
-    EXCLUDE USING gist (room_id WITH =, daterange(start_date, end_date, '[]') WITH &&);
+    EXCLUDE USING gist (room_id WITH =, daterange(start_date, end_date, '[)') WITH &&);
 
 
 CREATE TABLE pricing_rules (
