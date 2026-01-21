@@ -12,7 +12,11 @@ class InMemoryAvailabilityRepository : AvailabilityRepository {
         storage[roomId]?.toList().orEmpty()
 
     override fun save(availability: Availability): Availability {
-        storage.computeIfAbsent(availability.roomId) { mutableListOf() }.add(availability)
+        storage.compute(availability.roomId) { _, existing ->
+            val updated = existing ?: mutableListOf()
+            updated.add(availability)
+            updated
+        }
         return availability
     }
 }
