@@ -30,6 +30,6 @@ class InMemoryAvailabilityRepository : AvailabilityRepository {
     }
 
     private fun rangesOverlap(left: DateRange, right: DateRange): Boolean {
-        return left.start.isBefore(right.end) && right.start.isBefore(left.end)
+        return left.overlapsHalfOpen(right)
     }
 }
