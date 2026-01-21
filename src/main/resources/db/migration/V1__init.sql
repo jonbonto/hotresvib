@@ -50,7 +50,6 @@ ALTER TABLE availability
     ADD CONSTRAINT availability_no_overlap
     EXCLUDE USING gist (room_id WITH =, daterange(start_date, end_date, '[]') WITH &&);
 
-CREATE INDEX idx_availability_room_dates ON availability(room_id, start_date, end_date);
 
 CREATE TABLE pricing_rules (
     id TEXT PRIMARY KEY,
