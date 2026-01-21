@@ -43,7 +43,6 @@ CREATE TABLE availability (
     PRIMARY KEY (room_id, start_date, end_date)
 );
 
-CREATE INDEX idx_availability_room_id ON availability(room_id);
 CREATE INDEX idx_availability_dates ON availability(start_date, end_date);
 
 CREATE TABLE pricing_rules (
