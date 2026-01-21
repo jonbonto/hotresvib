@@ -10,7 +10,7 @@ value class EmailAddress(val value: String) {
     }
 
     private companion object {
-        private val EMAIL_REGEX = Regex("^[^\\s@]+@[^\\s@]+$")
+        private val EMAIL_REGEX = Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")
     }
 }
 
