@@ -14,7 +14,12 @@ class InMemoryAvailabilityRepository : AvailabilityRepository {
     override fun save(availability: Availability): Availability {
         storage.compute(availability.roomId) { _, existing ->
             val updated = existing ?: mutableListOf()
-            updated.add(availability)
+            val index = updated.indexOfFirst { it.range == availability.range }
+            if (index >= 0) {
+                updated[index] = availability
+            } else {
+                updated.add(availability)
+            }
             updated
         }
         return availability

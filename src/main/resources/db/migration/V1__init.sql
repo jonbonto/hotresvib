@@ -13,6 +13,8 @@ CREATE TABLE rooms (
     base_rate NUMERIC(10, 2) NOT NULL
 );
 
+CREATE INDEX idx_rooms_hotel_id ON rooms(hotel_id);
+
 CREATE TABLE users (
     id UUID PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
@@ -30,6 +32,8 @@ CREATE TABLE reservations (
     status TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
+
+CREATE INDEX idx_reservations_user_id ON reservations(user_id);
 
 CREATE TABLE availability (
     room_id UUID NOT NULL REFERENCES rooms(id) ON DELETE RESTRICT,
@@ -51,6 +55,8 @@ CREATE TABLE pricing_rules (
     description TEXT
 );
 
+CREATE INDEX idx_pricing_rules_room_id ON pricing_rules(room_id);
+
 CREATE TABLE payments (
     id TEXT PRIMARY KEY,
     reservation_id UUID NOT NULL REFERENCES reservations(id) ON DELETE RESTRICT,
@@ -58,3 +64,5 @@ CREATE TABLE payments (
     status TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
+
+CREATE INDEX idx_payments_reservation_id ON payments(reservation_id);
