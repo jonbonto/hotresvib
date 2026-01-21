@@ -10,7 +10,10 @@ class InMemoryUserRepository : UserRepository {
     private val storage = ConcurrentHashMap<UserId, User>()
     private val lock = Any()
 
-    override fun findById(id: UserId): User? = storage[id]
+    override fun findById(id: UserId): User? =
+        synchronized(lock) {
+            storage[id]
+        }
 
     override fun findByEmail(email: EmailAddress): User? =
         synchronized(lock) {

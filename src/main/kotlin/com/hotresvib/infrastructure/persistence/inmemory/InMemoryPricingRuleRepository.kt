@@ -10,7 +10,10 @@ class InMemoryPricingRuleRepository : PricingRuleRepository {
     private val storage = ConcurrentHashMap<PricingRuleId, PricingRule>()
     private val lock = Any()
 
-    override fun findById(id: PricingRuleId): PricingRule? = storage[id]
+    override fun findById(id: PricingRuleId): PricingRule? =
+        synchronized(lock) {
+            storage[id]
+        }
 
     override fun findByRoomId(roomId: RoomId): List<PricingRule> =
         synchronized(lock) {

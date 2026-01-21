@@ -10,7 +10,10 @@ class InMemoryRoomRepository : RoomRepository {
     private val storage = ConcurrentHashMap<RoomId, Room>()
     private val lock = Any()
 
-    override fun findById(id: RoomId): Room? = storage[id]
+    override fun findById(id: RoomId): Room? =
+        synchronized(lock) {
+            storage[id]
+        }
 
     override fun findByHotelId(hotelId: HotelId): List<Room> =
         synchronized(lock) {

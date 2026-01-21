@@ -10,7 +10,10 @@ class InMemoryPaymentRepository : PaymentRepository {
     private val storage = ConcurrentHashMap<PaymentId, Payment>()
     private val lock = Any()
 
-    override fun findById(id: PaymentId): Payment? = storage[id]
+    override fun findById(id: PaymentId): Payment? =
+        synchronized(lock) {
+            storage[id]
+        }
 
     override fun findByReservationId(reservationId: ReservationId): List<Payment> =
         synchronized(lock) {

@@ -19,13 +19,14 @@ class InMemoryAvailabilityRepository : AvailabilityRepository {
         synchronized(lock) {
             storage.compute(availability.roomId) { _, existing ->
                 val updated = existing ?: mutableListOf()
-                val index = updated.indexOfFirst { it.range == availability.range }
+                val index = updated.indexOfFirst { it.id == availability.id }
+                val overlaps = updated.any {
+                    it.id != availability.id && rangesOverlap(it.range, availability.range)
+                }
+                require(!overlaps) { "Availability ranges cannot overlap for the same room" }
                 if (index >= 0) {
                     updated[index] = availability
                 } else {
-                    require(updated.none { rangesOverlap(it.range, availability.range) }) {
-                        "Availability ranges cannot overlap for the same room"
-                    }
                     updated.add(availability)
                 }
                 updated
