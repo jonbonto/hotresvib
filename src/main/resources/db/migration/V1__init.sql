@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
 CREATE TABLE hotels (
     id UUID PRIMARY KEY,
     name TEXT NOT NULL,
@@ -34,6 +36,7 @@ CREATE TABLE reservations (
 );
 
 CREATE INDEX idx_reservations_user_id ON reservations(user_id);
+CREATE INDEX idx_reservations_room_id ON reservations(room_id);
 
 CREATE TABLE availability (
     room_id UUID NOT NULL REFERENCES rooms(id) ON DELETE RESTRICT,
@@ -43,7 +46,11 @@ CREATE TABLE availability (
     PRIMARY KEY (room_id, start_date, end_date)
 );
 
-CREATE INDEX idx_availability_dates ON availability(start_date, end_date);
+ALTER TABLE availability
+    ADD CONSTRAINT availability_no_overlap
+    EXCLUDE USING gist (room_id WITH =, daterange(start_date, end_date, '[]') WITH &&);
+
+CREATE INDEX idx_availability_room_dates ON availability(room_id, start_date, end_date);
 
 CREATE TABLE pricing_rules (
     id TEXT PRIMARY KEY,
