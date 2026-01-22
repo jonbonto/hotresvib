@@ -1,0 +1,16 @@
+name: Phase 0 Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  phase-0-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate Phase 0 artifacts
+        run: bash scripts/validate-phase-0.sh
