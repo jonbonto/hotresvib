@@ -41,8 +41,9 @@ class ReservationService(
             .flatMap { availability ->
                 generateSequence(availability.range.start) { current ->
                     val next = current.plusDays(1)
-                    if (next.isBefore(availability.range.end) || next == availability.range.end) next else null
-                }.takeWhile { it.isBefore(availability.range.end) }
+                    if (next.isBefore(availability.range.end)) next else null
+                }
+                    .takeWhile { it.isBefore(availability.range.end) }
                     .map { it to availability }
             }
             .toMap()
