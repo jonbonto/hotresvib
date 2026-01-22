@@ -64,7 +64,7 @@ Phase 1 delivers the foundational domain model (entities/value objects), reposit
 
 ## Build
 
-This repository uses Gradle. Build the project with:
+This repository uses Spring Boot with Kotlin and Gradle. Build the project with:
 
 ```bash
 ./gradlew build
