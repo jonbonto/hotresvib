@@ -64,7 +64,7 @@ class ReservationService(
             roomId = roomId,
             stay = stay,
             totalAmount = totalAmount,
-            status = ReservationStatus.PENDING,
+            status = ReservationStatus.PENDING_PAYMENT,
             createdAt = Instant.now(clock)
         )
 
@@ -84,7 +84,9 @@ class ReservationService(
         val reservation = reservationRepository.findById(reservationId)
             ?: throw IllegalArgumentException("Reservation not found")
         require(reservation.status != ReservationStatus.CANCELLED) { "Reservation already cancelled" }
-        require(reservation.status == ReservationStatus.PENDING) { "Only pending reservations can be cancelled" }
+        require(reservation.status == ReservationStatus.PENDING_PAYMENT || reservation.status == ReservationStatus.CONFIRMED) {
+            "Only pending payment or confirmed reservations can be cancelled"
+        }
 
         val stay = reservation.stay
         val availabilityByDate = availabilityByDate(reservation.roomId, stay, "No availability records for reservation dates")

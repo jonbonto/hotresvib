@@ -69,7 +69,7 @@ class ReservationServiceIntegrationTest {
 
         val persisted = reservationRepository.findById(reservation.id)
         assertThat(persisted).isNotNull
-        assertThat(persisted!!.status).isEqualTo(ReservationStatus.PENDING)
+        assertThat(persisted!!.status).isEqualTo(ReservationStatus.PENDING_PAYMENT)
         assertThat(persisted.totalAmount.amount).isEqualByComparingTo(BigDecimal("300.00"))
         assertThat(persisted.createdAt).isEqualTo(Instant.parse("2024-05-01T00:00:00Z"))
 

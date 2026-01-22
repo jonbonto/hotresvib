@@ -79,7 +79,7 @@ class ReservationServiceTest {
 
         val reservation = service.createReservation(UserId.generate(), roomId, stay)
 
-        assertThat(reservation.status).isEqualTo(ReservationStatus.PENDING)
+        assertThat(reservation.status).isEqualTo(ReservationStatus.PENDING_PAYMENT)
         assertThat(reservation.totalAmount.amount).isEqualByComparingTo(BigDecimal("240.00"))
         assertThat(availabilityRepository.findByRoomId(roomId).first().available.value).isEqualTo(1)
         assertThat(reservation.createdAt).isEqualTo(Instant.parse("2024-01-01T00:00:00Z"))
