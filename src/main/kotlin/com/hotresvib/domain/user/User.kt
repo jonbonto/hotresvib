@@ -15,7 +15,7 @@ value class EmailAddress(val value: String) {
 }
 
 enum class UserRole {
-    GUEST,
+    CUSTOMER,
     STAFF,
     ADMIN
 }
