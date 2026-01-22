@@ -95,4 +95,47 @@ class ReservationService(
 
         return reservation
     }
+
+    fun cancelReservation(reservationId: ReservationId): Reservation {
+        val reservation = reservationRepository.findById(reservationId)
+            ?: throw IllegalArgumentException("Reservation not found")
+        require(reservation.status != ReservationStatus.CANCELLED) { "Reservation already cancelled" }
+
+        val stay = reservation.stay
+        val availabilityByDate: Map<LocalDate, Availability> = availabilityRepository.findByRoomId(reservation.roomId)
+            .filter { it.range.overlapsHalfOpen(stay) }
+            .flatMap { availability ->
+                generateSequence(availability.range.start) { current ->
+                    val next = current.plusDays(1)
+                    if (next.isBefore(availability.range.end)) next else null
+                }
+                    .map { it to availability }
+            }
+            .groupBy({ it.first }, { it.second })
+            .mapValues { entry ->
+                require(entry.value.distinct().size == 1) { "Availability ranges overlap for the same date" }
+                entry.value.first()
+            }
+
+        val coveringAvailability = mutableSetOf<Availability>()
+        var cursor = stay.start
+        while (cursor.isBefore(stay.end)) {
+            val match = availabilityByDate[cursor]
+            require(match != null) { "No availability records for reservation dates" }
+            coveringAvailability.add(match)
+            cursor = cursor.plusDays(1)
+        }
+
+        coveringAvailability.forEach { availability ->
+            availabilityRepository.save(
+                availability.copy(
+                    available = AvailableQuantity(availability.available.value + 1)
+                )
+            )
+        }
+
+        val cancelledReservation = reservation.copy(status = ReservationStatus.CANCELLED)
+        reservationRepository.save(cancelledReservation)
+        return cancelledReservation
+    }
 }

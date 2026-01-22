@@ -79,4 +79,35 @@ class ReservationServiceIntegrationTest {
         // sanity check that original id remains unchanged
         assertThat(persisted.id).isNotEqualTo(ReservationId.generate())
     }
+
+    @Test
+    fun `cancelling reservation restores availability`() {
+        val roomId = RoomId.generate()
+        val room = Room(
+            id = roomId,
+            hotelId = HotelId.generate(),
+            number = RoomNumber("202"),
+            type = RoomType.SUITE,
+            baseRate = Money.of("USD", BigDecimal("200.00"))
+        )
+        roomRepository.save(room)
+
+        val stay = DateRange(LocalDate.of(2024, 7, 1), LocalDate.of(2024, 7, 4))
+        availabilityRepository.save(
+            Availability(
+                id = AvailabilityId.generate(),
+                roomId = roomId,
+                range = stay,
+                available = AvailableQuantity(1)
+            )
+        )
+
+        val reservation = service.createReservation(UserId.generate(), roomId, stay)
+        assertThat(availabilityRepository.findByRoomId(roomId).first().available.value).isZero()
+
+        val cancelled = service.cancelReservation(reservation.id)
+
+        assertThat(cancelled.status).isEqualTo(ReservationStatus.CANCELLED)
+        assertThat(availabilityRepository.findByRoomId(roomId).first().available.value).isEqualTo(1)
+    }
 }

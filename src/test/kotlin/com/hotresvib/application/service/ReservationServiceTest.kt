@@ -16,6 +16,7 @@ import com.hotresvib.domain.reservation.ReservationStatus
 import com.hotresvib.domain.shared.DateRange
 import com.hotresvib.domain.shared.HotelId
 import com.hotresvib.domain.shared.Money
+import com.hotresvib.domain.shared.ReservationId
 import com.hotresvib.domain.shared.RoomId
 import com.hotresvib.domain.shared.UserId
 import com.hotresvib.infrastructure.persistence.inmemory.InMemoryAvailabilityRepository
@@ -158,5 +159,36 @@ class ReservationServiceTest {
             service.createReservation(UserId.generate(), roomId, stay)
         }.isInstanceOf(IllegalArgumentException::class.java)
             .hasMessageContaining("No availability for the selected dates")
+    }
+
+    @Test
+    fun `cancelling reservation restores availability and marks cancelled`() {
+        val roomId = RoomId.generate()
+        val room = Room(
+            id = roomId,
+            hotelId = HotelId.generate(),
+            number = RoomNumber("104"),
+            type = RoomType.DOUBLE,
+            baseRate = Money.of("USD", BigDecimal("110.00"))
+        )
+        roomRepository.save(room)
+
+        val stay = DateRange(LocalDate.of(2024, 5, 1), LocalDate.of(2024, 5, 3))
+        val availability = Availability(
+            id = AvailabilityId.generate(),
+            roomId = roomId,
+            range = stay,
+            available = AvailableQuantity(1)
+        )
+        availabilityRepository.save(availability)
+
+        val reservation = service.createReservation(UserId.generate(), roomId, stay)
+        assertThat(availabilityRepository.findByRoomId(roomId).first().available.value).isZero()
+
+        val cancelled = service.cancelReservation(reservation.id)
+
+        assertThat(cancelled.status).isEqualTo(ReservationStatus.CANCELLED)
+        assertThat(reservationRepository.findById(reservation.id)?.status).isEqualTo(ReservationStatus.CANCELLED)
+        assertThat(availabilityRepository.findByRoomId(roomId).first().available.value).isEqualTo(1)
     }
 }
