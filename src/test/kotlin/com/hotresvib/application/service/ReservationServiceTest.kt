@@ -23,6 +23,7 @@ import com.hotresvib.infrastructure.persistence.inmemory.InMemoryPricingRuleRepo
 import com.hotresvib.infrastructure.persistence.inmemory.InMemoryReservationRepository
 import com.hotresvib.infrastructure.persistence.inmemory.InMemoryRoomRepository
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.Clock
@@ -129,5 +130,33 @@ class ReservationServiceTest {
         val reservation = service.createReservation(UserId.generate(), roomId, stay)
 
         assertThat(reservation.totalAmount.amount).isEqualByComparingTo(BigDecimal("190.00"))
+    }
+
+    @Test
+    fun `fails when availability does not cover entire stay`() {
+        val roomId = RoomId.generate()
+        val room = Room(
+            id = roomId,
+            hotelId = HotelId.generate(),
+            number = RoomNumber("103"),
+            type = RoomType.SINGLE,
+            baseRate = Money.of("USD", BigDecimal("50.00"))
+        )
+        roomRepository.save(room)
+
+        val stay = DateRange(LocalDate.of(2024, 4, 1), LocalDate.of(2024, 4, 3))
+        availabilityRepository.save(
+            Availability(
+                id = AvailabilityId.generate(),
+                roomId = roomId,
+                range = DateRange(LocalDate.of(2024, 4, 1), LocalDate.of(2024, 4, 2)),
+                available = AvailableQuantity(1)
+            )
+        )
+
+        assertThatThrownBy {
+            service.createReservation(UserId.generate(), roomId, stay)
+        }.isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessageContaining("No availability for the selected dates")
     }
 }
