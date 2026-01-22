@@ -43,10 +43,13 @@ class ReservationService(
                     val next = current.plusDays(1)
                     if (next.isBefore(availability.range.end)) next else null
                 }
-                    .takeWhile { it.isBefore(availability.range.end) }
                     .map { it to availability }
             }
-            .toMap()
+            .groupBy({ it.first }, { it.second })
+            .mapValues { entry ->
+                require(entry.value.distinct().size == 1) { "Availability ranges overlap for the same date" }
+                entry.value.first()
+            }
 
         val coveringAvailability = mutableSetOf<Availability>()
         var cursor = stay.start
