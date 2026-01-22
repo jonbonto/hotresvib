@@ -24,12 +24,12 @@ class InMemoryAvailabilityRepository : AvailabilityRepository {
                     it.id != availability.id && rangesOverlap(it.range, availability.range)
                 }
                 require(!overlaps) { "Availability ranges cannot overlap for the same room" }
-                if (index >= 0) {
-                    updated[index] = availability
-                } else {
-                    updated.add(availability)
-                }
-                updated
+                 if (index >= 0) {
+                     updated[index] = availability
+                 } else {
+                     updated.add(availability)
+                 }
+                 updated
             }
         }
         return availability
