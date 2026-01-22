@@ -4,7 +4,9 @@ import com.hotresvib.application.port.AvailabilityRepository
 import com.hotresvib.application.port.PricingRuleRepository
 import com.hotresvib.application.port.ReservationRepository
 import com.hotresvib.application.port.RoomRepository
+import com.hotresvib.domain.availability.Availability
 import com.hotresvib.domain.availability.AvailableQuantity
+import com.hotresvib.domain.pricing.PricingRule
 import com.hotresvib.domain.reservation.Reservation
 import com.hotresvib.domain.reservation.ReservationStatus
 import com.hotresvib.domain.shared.DateRange
@@ -15,6 +17,7 @@ import com.hotresvib.domain.shared.UserId
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 class ReservationService(
@@ -34,10 +37,20 @@ class ReservationService(
             .filter { it.range.overlapsHalfOpen(stay) }
         require(overlappingAvailability.isNotEmpty()) { "No availability for the selected dates" }
 
-        val coveringAvailability = mutableSetOf<com.hotresvib.domain.availability.Availability>()
+        val availabilityByDate: Map<LocalDate, Availability> = overlappingAvailability
+            .flatMap { availability ->
+                generateSequence(availability.range.start) { current ->
+                    val next = current.plusDays(1)
+                    if (next.isBefore(availability.range.end) || next == availability.range.end) next else null
+                }.takeWhile { it.isBefore(availability.range.end) }
+                    .map { it to availability }
+            }
+            .toMap()
+
+        val coveringAvailability = mutableSetOf<Availability>()
         var cursor = stay.start
         while (cursor.isBefore(stay.end)) {
-            val match = overlappingAvailability.firstOrNull { !cursor.isBefore(it.range.start) && cursor.isBefore(it.range.end) }
+            val match = availabilityByDate[cursor]
             require(match != null) { "No availability for the selected dates" }
             require(match.available.value > 0) { "No availability for the selected dates" }
             coveringAvailability.add(match)
@@ -48,7 +61,7 @@ class ReservationService(
         val applicableRate = pricingRuleRepository.findByRoomId(roomId)
             .filter { it.range.overlapsHalfOpen(stay) }
             .minWithOrNull(
-                compareByDescending<com.hotresvib.domain.pricing.PricingRule> { it.range.start }
+                compareByDescending<PricingRule> { it.range.start }
                     .thenBy { it.range.end }
             )
             ?.price ?: room.baseRate
