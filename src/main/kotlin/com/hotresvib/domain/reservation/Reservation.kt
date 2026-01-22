@@ -8,12 +8,9 @@ import com.hotresvib.domain.shared.UserId
 import java.time.Instant
 
 enum class ReservationStatus {
-    DRAFT,
-    PENDING_PAYMENT,
+    PENDING,
     CONFIRMED,
-    CANCELLED,
-    EXPIRED,
-    REFUNDED
+    CANCELLED
 }
 
 data class Reservation(
