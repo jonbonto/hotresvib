@@ -61,3 +61,11 @@ Phase 0 establishes the system boundaries, high-level architecture, and domain m
 ## Phase 1 — Core Domain Model & Persistence (Implemented)
 
 Phase 1 delivers the foundational domain model (entities/value objects), repository ports, in-memory adapters, and initial Flyway schema. Persistence adapters are in-memory placeholders until database-backed repositories are introduced.
+
+## Build
+
+This repository uses Gradle. Build the project with:
+
+```bash
+./gradlew build
+```
