@@ -33,23 +33,7 @@ class ReservationService(
 
         val room = roomRepository.findById(roomId) ?: throw IllegalArgumentException("Room not found")
 
-        val overlappingAvailability = availabilityRepository.findByRoomId(roomId)
-            .filter { it.range.overlapsHalfOpen(stay) }
-        require(overlappingAvailability.isNotEmpty()) { "No availability for the selected dates" }
-
-        val availabilityByDate: Map<LocalDate, Availability> = overlappingAvailability
-            .flatMap { availability ->
-                generateSequence(availability.range.start) { current ->
-                    val next = current.plusDays(1)
-                    if (next.isBefore(availability.range.end)) next else null
-                }
-                    .map { it to availability }
-            }
-            .groupBy({ it.first }, { it.second })
-            .mapValues { entry ->
-                require(entry.value.distinct().size == 1) { "Availability ranges overlap for the same date" }
-                entry.value.first()
-            }
+        val availabilityByDate = availabilityByDate(roomId, stay)
 
         val coveringAvailability = mutableSetOf<Availability>()
         var cursor = stay.start
@@ -100,22 +84,10 @@ class ReservationService(
         val reservation = reservationRepository.findById(reservationId)
             ?: throw IllegalArgumentException("Reservation not found")
         require(reservation.status != ReservationStatus.CANCELLED) { "Reservation already cancelled" }
+        require(reservation.status == ReservationStatus.PENDING) { "Only pending reservations can be cancelled" }
 
         val stay = reservation.stay
-        val availabilityByDate: Map<LocalDate, Availability> = availabilityRepository.findByRoomId(reservation.roomId)
-            .filter { it.range.overlapsHalfOpen(stay) }
-            .flatMap { availability ->
-                generateSequence(availability.range.start) { current ->
-                    val next = current.plusDays(1)
-                    if (next.isBefore(availability.range.end)) next else null
-                }
-                    .map { it to availability }
-            }
-            .groupBy({ it.first }, { it.second })
-            .mapValues { entry ->
-                require(entry.value.distinct().size == 1) { "Availability ranges overlap for the same date" }
-                entry.value.first()
-            }
+        val availabilityByDate = availabilityByDate(reservation.roomId, stay, "No availability records for reservation dates")
 
         val coveringAvailability = mutableSetOf<Availability>()
         var cursor = stay.start
@@ -137,5 +109,25 @@ class ReservationService(
         val cancelledReservation = reservation.copy(status = ReservationStatus.CANCELLED)
         reservationRepository.save(cancelledReservation)
         return cancelledReservation
+    }
+
+    private fun availabilityByDate(roomId: RoomId, stay: DateRange, missingMessage: String = "No availability for the selected dates"): Map<LocalDate, Availability> {
+        val overlappingAvailability = availabilityRepository.findByRoomId(roomId)
+            .filter { it.range.overlapsHalfOpen(stay) }
+        require(overlappingAvailability.isNotEmpty()) { missingMessage }
+
+        return overlappingAvailability
+            .flatMap { availability ->
+                generateSequence(availability.range.start) { current ->
+                    val next = current.plusDays(1)
+                    if (next.isBefore(availability.range.end)) next else null
+                }
+                    .map { it to availability }
+            }
+            .groupBy({ it.first }, { it.second })
+            .mapValues { entry ->
+                require(entry.value.distinct().size == 1) { "Availability ranges overlap for the same date" }
+                entry.value.first()
+            }
     }
 }

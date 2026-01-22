@@ -16,7 +16,15 @@ class JwtTokenProvider(
     @Value("\${security.jwt.secret}") secret: String,
     private val clock: Clock = Clock.systemUTC()
 ) {
-    private val key: SecretKey = Keys.hmacShaKeyFor(secret.toByteArray(StandardCharsets.UTF_8))
+    private val key: SecretKey
+
+    init {
+        val secretBytes = secret.toByteArray(StandardCharsets.UTF_8)
+        require(secretBytes.size >= 32) {
+            "JWT secret key must be at least 32 bytes (256 bits) when encoded as UTF-8 for HMAC-SHA256"
+        }
+        key = Keys.hmacShaKeyFor(secretBytes)
+    }
 
     fun generateAccessToken(user: User, expiresInSeconds: Long = 15 * 60): JwtToken {
         val now = Instant.now(clock)

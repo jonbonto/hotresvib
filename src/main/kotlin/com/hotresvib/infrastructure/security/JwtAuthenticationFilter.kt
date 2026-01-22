@@ -29,16 +29,20 @@ class JwtAuthenticationFilter(
         val header = request.getHeader("Authorization")
         if (header != null && header.startsWith("Bearer ")) {
             val token = header.removePrefix("Bearer ").trim()
-            val claims: Claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload
-            val subject = claims.subject
-            val role = claims["role"] as? String
-            if (subject != null && role != null) {
-                val auth = UsernamePasswordAuthenticationToken(
-                    subject,
-                    null,
-                    listOf(SimpleGrantedAuthority("ROLE_$role"))
-                )
-                SecurityContextHolder.getContext().authentication = auth
+            try {
+                val claims: Claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload
+                val subject = claims.subject
+                val role = claims["role"] as? String
+                if (subject != null && role != null) {
+                    val auth = UsernamePasswordAuthenticationToken(
+                        subject,
+                        null,
+                        listOf(SimpleGrantedAuthority("ROLE_$role"))
+                    )
+                    SecurityContextHolder.getContext().authentication = auth
+                }
+            } catch (_: Exception) {
+                // ignore invalid/expired tokens and continue filter chain unauthenticated
             }
         }
         filterChain.doFilter(request, response)

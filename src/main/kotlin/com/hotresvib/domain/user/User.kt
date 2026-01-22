@@ -24,9 +24,11 @@ data class User(
     val id: UserId,
     val email: EmailAddress,
     val displayName: String,
-    val role: UserRole
+    val role: UserRole,
+    val passwordHash: String
 ) {
     init {
         require(displayName.isNotBlank()) { "Display name is required" }
+        require(passwordHash.isNotBlank()) { "Password hash is required" }
     }
 }
