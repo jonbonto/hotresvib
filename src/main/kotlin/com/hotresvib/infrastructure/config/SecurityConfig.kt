@@ -24,7 +24,15 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
                 it.requestMatchers("/actuator/health").permitAll()
+                it.requestMatchers("/api/auth/**").permitAll()
+                it.requestMatchers("/api/auth/login").permitAll()
+                it.requestMatchers("/api/auth/register").permitAll()
+                it.requestMatchers("/api/auth/validate").permitAll()
+                it.requestMatchers("/api/hotels/**").permitAll()
+                it.requestMatchers("/api/reservations/check-availability").permitAll()
                 it.requestMatchers("/api/v1/auth/**").permitAll()
+                it.requestMatchers("/swagger-ui/**").permitAll()
+                it.requestMatchers("/v3/api-docs/**").permitAll()
                 it.anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)

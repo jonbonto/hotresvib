@@ -1,6 +1,10 @@
 package com.hotresvib.domain.hotel
 
 import com.hotresvib.domain.shared.HotelId
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 
 @JvmInline
 value class HotelName(val value: String) {
@@ -9,10 +13,19 @@ value class HotelName(val value: String) {
     }
 }
 
+@Entity
+@Table(name = "hotels")
 data class Hotel(
+    @Id
     val id: HotelId,
+
+    @Column(name = "name", nullable = false)
     val name: HotelName,
+
+    @Column(name = "city", nullable = false)
     val city: String,
+
+    @Column(name = "country", nullable = false)
     val country: String
 ) {
     init {

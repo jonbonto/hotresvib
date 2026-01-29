@@ -1,5 +1,7 @@
 package com.hotresvib.application.service
 
+import org.springframework.stereotype.Service
+
 import com.hotresvib.application.port.AvailabilityRepository
 import com.hotresvib.application.port.PricingRuleRepository
 import com.hotresvib.application.port.ReservationRepository
@@ -20,6 +22,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
+@Service
 class ReservationService(
     private val reservationRepository: ReservationRepository,
     private val roomRepository: RoomRepository,

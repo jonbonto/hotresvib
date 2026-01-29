@@ -8,9 +8,9 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: false
-flyway:
-  enabled: true
-  locations: classpath:db/migration
+  flyway:
+    enabled: true
+    locations: classpath:db/migration/demo
 
 security:
   jwt:
@@ -19,3 +19,22 @@ security:
 logging:
   level:
     org.springframework.jdbc.datasource.init.ScriptUtils: DEBUG
+
+---
+# Demo profile for local H2-based runs
+spring:
+  config:
+    activate:
+      on-profile: demo
+  datasource:
+    url: jdbc:h2:mem:hotresvib;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration/demo

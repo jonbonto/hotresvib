@@ -1,9 +1,15 @@
 package com.hotresvib.domain.shared
 
 import java.math.BigDecimal
+import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
 
+@Embeddable
 data class Money(
+    @Column(name = "amount", nullable = false)
     val amount: BigDecimal,
+
+    @Column(name = "currency", nullable = false, length = 3)
     val currency: String
 ) {
     init {

@@ -7,22 +7,27 @@ import com.hotresvib.domain.shared.RoomId
 import java.util.concurrent.ConcurrentHashMap
 
 class InMemoryRoomRepository : RoomRepository {
-    private val storage = ConcurrentHashMap<RoomId, Room>()
+    val rooms = ConcurrentHashMap<RoomId, Room>()
     private val lock = Any()
 
     override fun findById(id: RoomId): Room? =
         synchronized(lock) {
-            storage[id]
+            rooms[id]
         }
 
     override fun findByHotelId(hotelId: HotelId): List<Room> =
         synchronized(lock) {
-            storage.values.filter { it.hotelId == hotelId }
+            rooms.values.filter { it.hotelId == hotelId }
+        }
+
+    override fun findAll(): List<Room> =
+        synchronized(lock) {
+            rooms.values.toList()
         }
 
     override fun save(room: Room): Room {
         synchronized(lock) {
-            storage[room.id] = room
+            rooms[room.id] = room
         }
         return room
     }

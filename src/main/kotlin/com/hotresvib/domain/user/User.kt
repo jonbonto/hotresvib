@@ -1,6 +1,7 @@
 package com.hotresvib.domain.user
 
 import com.hotresvib.domain.shared.UserId
+import jakarta.persistence.*
 
 @JvmInline
 value class EmailAddress(val value: String) {
@@ -20,11 +21,23 @@ enum class UserRole {
     ADMIN
 }
 
+@Entity
+@Table(name = "users")
 data class User(
+    @Id
     val id: UserId,
+
+    @Column(name = "email", nullable = false, unique = true)
     val email: EmailAddress,
+
+    @Column(name = "display_name", nullable = false)
     val displayName: String,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
     val role: UserRole,
+
+    @Column(name = "password_hash", nullable = false)
     val passwordHash: String
 ) {
     init {

@@ -4,6 +4,7 @@ import com.hotresvib.domain.shared.DateRange
 import com.hotresvib.domain.shared.RoomId
 import java.util.UUID
 import java.time.LocalDate
+import jakarta.persistence.*
 
 @JvmInline
 value class AvailabilityId(val value: UUID) {
@@ -19,18 +20,18 @@ value class AvailableQuantity(val value: Int) {
     }
 }
 
+@Entity
+@Table(name = "availability")
 data class Availability(
+    @Id
     val id: AvailabilityId,
+
     val roomId: RoomId,
+
+    @Embedded
     val range: DateRange,
+
+    @Column(name = "available", nullable = false)
     val available: AvailableQuantity
 )
 
-{
-    constructor(id: UUID, roomId: UUID, start: LocalDate, end: LocalDate, available: Int) : this(
-        AvailabilityId(id),
-        RoomId(roomId),
-        DateRange(start, end),
-        AvailableQuantity(available)
-    )
-}

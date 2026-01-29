@@ -1,11 +1,16 @@
 package com.hotresvib.infrastructure.persistence.inmemory
 
+import org.springframework.context.annotation.Profile
+import org.springframework.stereotype.Repository
+
 import com.hotresvib.application.port.AvailabilityRepository
 import com.hotresvib.domain.availability.Availability
 import com.hotresvib.domain.shared.DateRange
 import com.hotresvib.domain.shared.RoomId
 import java.util.concurrent.ConcurrentHashMap
 
+@Repository
+@Profile("demo")
 class InMemoryAvailabilityRepository : AvailabilityRepository {
     private val storage = ConcurrentHashMap<RoomId, MutableList<Availability>>()
     private val lock = Any()

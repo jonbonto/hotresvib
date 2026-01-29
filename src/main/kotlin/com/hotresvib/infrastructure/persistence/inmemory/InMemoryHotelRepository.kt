@@ -6,12 +6,14 @@ import com.hotresvib.domain.shared.HotelId
 import java.util.concurrent.ConcurrentHashMap
 
 class InMemoryHotelRepository : HotelRepository {
-    private val storage = ConcurrentHashMap<HotelId, Hotel>()
+    val hotels = ConcurrentHashMap<HotelId, Hotel>()
 
-    override fun findById(id: HotelId): Hotel? = storage[id]
+    override fun findById(id: HotelId): Hotel? = hotels[id]
+
+    override fun findAll(): List<Hotel> = hotels.values.toList()
 
     override fun save(hotel: Hotel): Hotel {
-        storage[hotel.id] = hotel
+        hotels[hotel.id] = hotel
         return hotel
     }
 }

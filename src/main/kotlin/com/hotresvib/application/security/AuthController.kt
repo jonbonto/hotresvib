@@ -21,7 +21,7 @@ data class AuthResponse(val accessToken: String, val refreshToken: String)
 
 @RestController
 @RequestMapping("/api/v1/auth")
-class AuthController(
+class SecurityAuthController(
     private val userRepository: UserRepository,
     private val jwtTokenProvider: JwtTokenProvider,
     private val passwordEncoder: PasswordEncoder

@@ -3,6 +3,7 @@ package com.hotresvib.domain.hotel
 import com.hotresvib.domain.shared.HotelId
 import com.hotresvib.domain.shared.Money
 import com.hotresvib.domain.shared.RoomId
+import jakarta.persistence.*
 
 @JvmInline
 value class RoomNumber(val value: String) {
@@ -17,10 +18,21 @@ enum class RoomType {
     SUITE
 }
 
+@Entity
+@Table(name = "rooms")
 data class Room(
+    @Id
     val id: RoomId,
+
     val hotelId: HotelId,
+
+    @Column(name = "number", nullable = false)
     val number: RoomNumber,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
     val type: RoomType,
+
+    @Embedded
     val baseRate: Money
 )

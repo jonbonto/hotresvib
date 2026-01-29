@@ -2,8 +2,17 @@ package com.hotresvib.domain.shared
 
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
 
-data class DateRange(val startDate: LocalDate, val endDate: LocalDate) {
+@Embeddable
+data class DateRange(
+    @Column(name = "start_date", nullable = false)
+    val startDate: LocalDate,
+
+    @Column(name = "end_date", nullable = false)
+    val endDate: LocalDate
+) {
     init {
         require(!endDate.isBefore(startDate)) { "End date must be on or after start date" }
     }

@@ -11,7 +11,7 @@ class PaymentApplicationService(
 ) {
     fun processPayment(payment: Payment): Payment {
         // Logic to interact with a payment gateway would go here
-        val processedPayment = payment.copy(status = PaymentStatus.CAPTURED)
+        val processedPayment = payment.copy(status = PaymentStatus.COMPLETED)
         return paymentRepository.save(processedPayment)
     }
 }

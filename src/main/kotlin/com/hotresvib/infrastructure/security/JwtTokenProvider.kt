@@ -51,6 +51,31 @@ class JwtTokenProvider(
             .compact()
         return JwtToken(token, expiry)
     }
+
+    fun validateToken(token: String): Boolean {
+        return try {
+            Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun getSubjectFromToken(token: String): String? {
+        return try {
+            Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .payload
+                .subject
+        } catch (e: Exception) {
+            null
+        }
+    }
 }
 
 data class JwtToken(val value: String, val expiresAt: Instant)
