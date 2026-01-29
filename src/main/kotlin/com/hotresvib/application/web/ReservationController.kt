@@ -10,6 +10,7 @@ import com.hotresvib.domain.shared.UserId
 import com.hotresvib.domain.shared.DateRange
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
@@ -46,6 +47,7 @@ class ReservationController(
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     fun createReservation(
         @RequestBody request: ReservationRequest,
         authentication: Authentication
@@ -75,6 +77,7 @@ class ReservationController(
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     fun getReservation(
         @PathVariable id: UUID,
         authentication: Authentication

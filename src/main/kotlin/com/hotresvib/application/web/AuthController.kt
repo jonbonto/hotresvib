@@ -1,95 +1,121 @@
 package com.hotresvib.application.web
 
-import com.hotresvib.application.dto.LoginRequest
-import com.hotresvib.application.dto.LoginResponse
-import com.hotresvib.application.dto.RegisterRequest
-import com.hotresvib.application.dto.RegisterResponse
-import com.hotresvib.infrastructure.security.JwtTokenProvider
-import com.hotresvib.application.port.UserRepository
-import com.hotresvib.domain.user.User
-import com.hotresvib.domain.user.UserRole
-import com.hotresvib.domain.user.EmailAddress
+import com.hotresvib.application.dto.*
+import com.hotresvib.application.service.AuthenticationService
 import com.hotresvib.domain.shared.UserId
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import java.time.Instant
+import java.util.UUID
 
+/**
+ * REST controller for authentication endpoints
+ */
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = ["*"])
+@CrossOrigin(origins = ["http://localhost:3000", "http://localhost:3001"])
 class AuthController(
-    private val jwtTokenProvider: JwtTokenProvider,
-    private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val authenticationService: AuthenticationService
 ) {
 
-    @PostMapping("/login")
-    fun login(@RequestBody request: LoginRequest): ResponseEntity<LoginResponse> {
+    /**
+     * Register a new user
+     * POST /api/auth/register
+     */
+    @PostMapping("/register")
+    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<RegisterResponse> {
         return try {
-            val user = userRepository.findByEmail(EmailAddress(request.email))
-                ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(null)
-
-            if (!passwordEncoder.matches(request.password, user.passwordHash)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null)
+            val response = authenticationService.register(request)
+            ResponseEntity.status(HttpStatus.CREATED).body(response)
+        } catch (e: IllegalArgumentException) {
+            when {
+                e.message?.contains("already registered") == true ->
+                    ResponseEntity.status(HttpStatus.CONFLICT).body(null)
+                e.message?.contains("email", ignoreCase = true) == true ||
+                e.message?.contains("password", ignoreCase = true) == true ||
+                e.message?.contains("display name", ignoreCase = true) == true ->
+                    ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+                else ->
+                    ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
             }
+        }
+    }
 
-            val token = jwtTokenProvider.generateAccessToken(user).value
-            ResponseEntity.ok(LoginResponse(
-                token = token,
-                userId = user.id.value,
-                email = user.email.value,
-                displayName = user.displayName
-            ))
+    /**
+     * Login user and get tokens
+     * POST /api/auth/login
+     */
+    @PostMapping("/login")
+    fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<AuthResponse> {
+        return try {
+            val response = authenticationService.login(request)
+            ResponseEntity.ok(response)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null)
+        }
+    }
+
+    /**
+     * Refresh access token
+     * POST /api/auth/refresh
+     */
+    @PostMapping("/refresh")
+    fun refresh(@Valid @RequestBody request: RefreshRequest): ResponseEntity<RefreshResponse> {
+        return try {
+            val response = authenticationService.refresh(request)
+            ResponseEntity.ok(response)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null)
+        }
+    }
+
+    /**
+     * Logout user (invalidate refresh tokens)
+     * POST /api/auth/logout
+     */
+    @PostMapping("/logout")
+    fun logout(authentication: Authentication): ResponseEntity<LogoutResponse> {
+        return try {
+            val userId = UserId(UUID.fromString(authentication.name))
+            val response = authenticationService.logout(userId)
+            ResponseEntity.ok(response)
         } catch (e: Exception) {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
         }
     }
 
-    @PostMapping("/register")
-    fun register(@RequestBody request: RegisterRequest): ResponseEntity<RegisterResponse> {
+    /**
+     * Get current user profile
+     * GET /api/auth/me
+     */
+    @GetMapping("/me")
+    fun getCurrentUser(authentication: Authentication): ResponseEntity<UserResponse> {
         return try {
-            // Check if user already exists
-            if (userRepository.findByEmail(EmailAddress(request.email)) != null) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(null)
-            }
-
-            val hashedPassword = passwordEncoder.encode(request.password)
-            val newUser = User(
-                id = UserId.generate(),
-                email = EmailAddress(request.email),
-                displayName = request.displayName,
-                role = UserRole.CUSTOMER,
-                passwordHash = hashedPassword
-            )
-            userRepository.save(newUser)
-
-            ResponseEntity.status(HttpStatus.CREATED).body(RegisterResponse(
-                userId = newUser.id.value,
-                email = newUser.email.value,
-                displayName = newUser.displayName,
-                createdAt = Instant.now().toString()
-            ))
+            val userId = UserId(UUID.fromString(authentication.name))
+            val response = authenticationService.getUserProfile(userId)
+            ResponseEntity.ok(response)
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+            ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
         }
     }
 
-    @GetMapping("/validate")
-    fun validateToken(@RequestHeader("Authorization") authHeader: String): ResponseEntity<Map<String, Any>> {
+    /**
+     * Update current user profile
+     * PUT /api/auth/me
+     */
+    @PutMapping("/me")
+    fun updateCurrentUser(
+        authentication: Authentication,
+        @Valid @RequestBody request: UpdateProfileRequest
+    ): ResponseEntity<UserResponse> {
         return try {
-            val token = authHeader.removePrefix("Bearer ").trim()
-            val isValid = jwtTokenProvider.validateToken(token)
-            if (isValid) {
-                val userId = jwtTokenProvider.getSubjectFromToken(token)
-                ResponseEntity.ok(mapOf("valid" to true, "userId" to (userId ?: "")))
-            } else {
-                ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("valid" to false))
-            }
+            val userId = UserId(UUID.fromString(authentication.name))
+            val response = authenticationService.updateProfile(userId, request)
+            ResponseEntity.ok(response)
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("valid" to false))
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
         }
     }
 }

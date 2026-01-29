@@ -12,6 +12,7 @@ import com.hotresvib.domain.shared.RoomId
 import com.hotresvib.domain.shared.Money
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
 import java.math.BigDecimal
@@ -59,6 +60,7 @@ class HotelController(
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     fun createHotel(@RequestBody request: HotelRequest): ResponseEntity<HotelResponse> {
         return try {
             val hotel = Hotel(
@@ -102,6 +104,7 @@ class HotelController(
     }
 
     @PostMapping("/{hotelId}/rooms")
+    @PreAuthorize("hasRole('ADMIN')")
     fun createRoom(
         @PathVariable hotelId: UUID,
         @RequestBody request: RoomRequest
