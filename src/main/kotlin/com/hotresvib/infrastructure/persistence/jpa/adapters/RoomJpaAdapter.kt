@@ -5,9 +5,11 @@ import com.hotresvib.domain.hotel.Room
 import com.hotresvib.domain.shared.HotelId
 import com.hotresvib.domain.shared.RoomId
 import com.hotresvib.infrastructure.persistence.jpa.RoomJpaRepository
+import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Repository
 
 @Repository
+@Primary
 class RoomJpaAdapter(private val repo: RoomJpaRepository) : RoomRepository {
     override fun findById(id: RoomId): Room? = repo.findById(id).orElse(null)
 

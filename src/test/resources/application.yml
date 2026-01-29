@@ -1,3 +1,11 @@
 security:
   jwt:
     secret: "0123456789abcdef0123456789abcdef"
+
+spring:
+  flyway:
+    enabled: false  # Disable Flyway for tests, use JPA ddl-auto instead
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # Let Hibernate create schema from entities for tests
+    show-sql: false

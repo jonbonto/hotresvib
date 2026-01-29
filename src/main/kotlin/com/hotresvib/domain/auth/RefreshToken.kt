@@ -3,16 +3,28 @@ package com.hotresvib.domain.auth
 import com.hotresvib.domain.shared.UserId
 import java.time.Instant
 import java.util.UUID
+import jakarta.persistence.*
 
 /**
  * RefreshToken entity for managing JWT refresh tokens
  * Enables token rotation and long-lived sessions
  */
+@Entity
+@Table(name = "refresh_tokens")
 data class RefreshToken(
+    @Id
     val id: UUID,
+
+    @Column(name = "token", nullable = false, unique = true)
     val token: String,
+
+    @Column(name = "user_id", nullable = false)
     val userId: UserId,
+
+    @Column(name = "expires_at", nullable = false)
     val expiresAt: Instant,
+
+    @Column(name = "created_at", nullable = false)
     val createdAt: Instant
 ) {
     init {
