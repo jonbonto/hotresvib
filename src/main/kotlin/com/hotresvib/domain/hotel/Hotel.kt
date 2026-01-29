@@ -26,7 +26,10 @@ data class Hotel(
     val city: String,
 
     @Column(name = "country", nullable = false)
-    val country: String
+    val country: String,
+
+    @Column(name = "is_featured", nullable = false)
+    val isFeatured: Boolean = false
 ) {
     init {
         require(city.isNotBlank()) { "City is required" }
