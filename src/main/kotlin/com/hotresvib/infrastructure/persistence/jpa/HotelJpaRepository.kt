@@ -19,7 +19,7 @@ interface HotelJpaRepository : JpaRepository<Hotel, HotelId> {
         SELECT h FROM Hotel h 
         WHERE (:city IS NULL OR LOWER(h.city) LIKE LOWER(CONCAT('%', :city, '%')))
         AND (:country IS NULL OR LOWER(h.country) LIKE LOWER(CONCAT('%', :country, '%')))
-        AND (:name IS NULL OR LOWER(h.name.value) LIKE LOWER(CONCAT('%', :name, '%')))
+        AND (:name IS NULL OR LOWER(h.name) LIKE LOWER(CONCAT('%', :name, '%')))
     """)
     fun searchByCriteria(
         @Param("city") city: String?,

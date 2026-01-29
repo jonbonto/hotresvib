@@ -24,6 +24,10 @@ data class PricingRule(
     val range: DateRange,
 
     @Embedded
+    @AttributeOverrides(
+        AttributeOverride(name = "amount", column = Column(name = "price_amount", nullable = false)),
+        AttributeOverride(name = "currency", column = Column(name = "price_currency", nullable = false, length = 3))
+    )
     val price: Money,
 
     @Column(name = "description")

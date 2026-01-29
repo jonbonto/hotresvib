@@ -68,5 +68,35 @@ tasks.register<JavaExec>("runFlyway") {
     group = "verification"
     description = "Run FlywayRunner to apply migrations to file DB and print history"
     classpath = sourceSets["main"].runtimeClasspath
-    mainClass.set("com.hotresvib.tools.FlywayRunner")
+    mainClass.set("com.hotresvib.tools.FlywayRunnerKt")
+}
+
+tasks.register<JavaExec>("runFlywayDev") {
+    group = "verification"
+    description = "Run FlywayRunnerDev to apply migrations+seed to in-memory H2 (dev)"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.hotresvib.tools.FlywayRunnerDevKt")
+}
+
+tasks.register<JavaExec>("generateBcrypt") {
+    group = "utility"
+    description = "Generate bcrypt hashes for demo passwords"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.hotresvib.tools.HashGeneratorKt")
+}
+
+// Configure bootRun to honor a project property `-Pprofile=...` or environment variable
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    val profileFromProp = if (project.hasProperty("profile")) project.property("profile").toString() else null
+    val profile = profileFromProp ?: System.getenv("SPRING_PROFILES_ACTIVE") ?: "dev"
+    systemProperty("spring.profiles.active", profile)
+}
+
+// Convenience task to run with dev profile (avoids argument parsing issues on Windows shells)
+tasks.register<org.springframework.boot.gradle.tasks.run.BootRun>("bootRunDev") {
+    group = "application"
+    description = "Run the application with the dev Spring profile"
+    systemProperty("spring.profiles.active", "dev")
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.hotresvib.HotResvibApplicationKt")
 }

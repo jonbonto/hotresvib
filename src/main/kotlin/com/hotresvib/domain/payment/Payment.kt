@@ -22,6 +22,10 @@ data class Payment(
     val reservationId: ReservationId,
 
     @Embedded
+    @AttributeOverrides(
+        AttributeOverride(name = "amount", column = Column(name = "amount_amount", nullable = false)),
+        AttributeOverride(name = "currency", column = Column(name = "amount_currency", nullable = false, length = 3))
+    )
     val amount: Money,
 
     @Enumerated(EnumType.STRING)

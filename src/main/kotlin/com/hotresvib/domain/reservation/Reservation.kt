@@ -31,6 +31,10 @@ data class Reservation(
     val stay: DateRange,
 
     @Embedded
+    @AttributeOverrides(
+        AttributeOverride(name = "amount", column = Column(name = "total_amount_amount", nullable = false)),
+        AttributeOverride(name = "currency", column = Column(name = "total_amount_currency", nullable = false, length = 3))
+    )
     val totalAmount: Money,
 
     @Enumerated(EnumType.STRING)
