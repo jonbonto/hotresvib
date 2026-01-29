@@ -29,15 +29,15 @@ class ReservationService(
     ) {
 
     fun createReservation(userId: UserId, roomId: RoomId, stay: DateRange): Reservation {
-        require(stay.start.isBefore(stay.end)) { "Stay must be at least one night" }
+        require(stay.startDate.isBefore(stay.endDate)) { "Stay must be at least one night" }
 
         val room = roomRepository.findById(roomId) ?: throw IllegalArgumentException("Room not found")
 
         val availabilityByDate = availabilityByDate(roomId, stay)
 
         val coveringAvailability = mutableSetOf<Availability>()
-        var cursor = stay.start
-        while (cursor.isBefore(stay.end)) {
+        var cursor = stay.startDate
+        while (cursor.isBefore(stay.endDate)) {
             val match = availabilityByDate[cursor]
             require(match != null) { "No availability for the selected dates" }
             require(match.available.value > 0) { "No availability for the selected dates" }
@@ -45,12 +45,12 @@ class ReservationService(
             cursor = cursor.plusDays(1)
         }
 
-        val nights = ChronoUnit.DAYS.between(stay.start, stay.end)
+        val nights = ChronoUnit.DAYS.between(stay.startDate, stay.endDate)
         val applicableRate = pricingRuleRepository.findByRoomId(roomId)
-            .filter { it.range.overlapsHalfOpen(stay) }
+            .filter { it.range.overlaps(stay) }
             .minWithOrNull(
-                compareByDescending<PricingRule> { it.range.start }
-                    .thenBy { it.range.end }
+                compareByDescending<PricingRule> { it.range.startDate }
+                    .thenBy { it.range.endDate }
             )
             ?.price ?: room.baseRate
         val totalAmount = Money(
@@ -90,8 +90,8 @@ class ReservationService(
         val availabilityByDate = availabilityByDate(reservation.roomId, stay, "No availability records for reservation dates")
 
         val coveringAvailability = mutableSetOf<Availability>()
-        var cursor = stay.start
-        while (cursor.isBefore(stay.end)) {
+        var cursor = stay.startDate
+        while (cursor.isBefore(stay.endDate)) {
             val match = availabilityByDate[cursor]
             require(match != null) { "No availability records for reservation dates" }
             coveringAvailability.add(match)
@@ -113,14 +113,14 @@ class ReservationService(
 
     private fun availabilityByDate(roomId: RoomId, stay: DateRange, missingMessage: String = "No availability for the selected dates"): Map<LocalDate, Availability> {
         val overlappingAvailability = availabilityRepository.findByRoomId(roomId)
-            .filter { it.range.overlapsHalfOpen(stay) }
+            .filter { it.range.overlaps(stay) }
         require(overlappingAvailability.isNotEmpty()) { missingMessage }
 
         return overlappingAvailability
             .flatMap { availability ->
-                generateSequence(availability.range.start) { current ->
+                generateSequence(availability.range.startDate) { current ->
                     val next = current.plusDays(1)
-                    if (next.isBefore(availability.range.end)) next else null
+                    if (next.isBefore(availability.range.endDate)) next else null
                 }
                     .map { it to availability }
             }

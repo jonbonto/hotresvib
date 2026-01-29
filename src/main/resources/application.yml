@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/hotresvib
+    driver-class-name: org.postgresql.Driver
+    username: hotresvib_user
+    password: "hotresvib_pass"
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+flyway:
+  enabled: true
+  locations: classpath:db/migration
+
+security:
+  jwt:
+    secret: "0123456789abcdef0123456789abcdef"
+
+logging:
+  level:
+    org.springframework.jdbc.datasource.init.ScriptUtils: DEBUG

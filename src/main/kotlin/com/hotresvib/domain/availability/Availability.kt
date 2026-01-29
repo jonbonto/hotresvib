@@ -3,6 +3,7 @@ package com.hotresvib.domain.availability
 import com.hotresvib.domain.shared.DateRange
 import com.hotresvib.domain.shared.RoomId
 import java.util.UUID
+import java.time.LocalDate
 
 @JvmInline
 value class AvailabilityId(val value: UUID) {
@@ -24,3 +25,12 @@ data class Availability(
     val range: DateRange,
     val available: AvailableQuantity
 )
+
+{
+    constructor(id: UUID, roomId: UUID, start: LocalDate, end: LocalDate, available: Int) : this(
+        AvailabilityId(id),
+        RoomId(roomId),
+        DateRange(start, end),
+        AvailableQuantity(available)
+    )
+}
