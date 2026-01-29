@@ -3,6 +3,7 @@ package com.hotresvib.domain.shared
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import jakarta.persistence.Column
+import jakarta.persistence.Transient
 import jakarta.persistence.Embeddable
 
 @Embeddable
@@ -17,6 +18,7 @@ data class DateRange(
         require(!endDate.isBefore(startDate)) { "End date must be on or after start date" }
     }
 
+    @Transient
     val nights: Int = ChronoUnit.DAYS.between(startDate, endDate).toInt()
 
     /**
