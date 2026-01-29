@@ -5,3 +5,6 @@
 build
 
 .jdks
+
+# Env files with secrets (developers may use .env.dev locally, replace in CI with secure secrets)
+.env.*

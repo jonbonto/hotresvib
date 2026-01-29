@@ -282,3 +282,22 @@ This repository uses Spring Boot with Kotlin and Gradle. Build the project with:
 ```bash
 ./gradlew build
 ```
+
+**Dev Hot Reload**
+
+- **Overview:** Run a continuous compiler watcher and the app with devtools enabled so the app restarts automatically on code changes.
+- **Step 1 (watch compilation):** In one terminal run:
+
+```bash
+./gradlew -t classes
+```
+
+- **Step 2 (start app with dev profile):** In another terminal run:
+
+```bash
+./gradlew bootRunDev
+```
+
+- **Notes:**
+        - `bootRunDev` includes `spring-boot-devtools` on the classpath; when the `classes` task recompiles, DevTools will restart the app.
+        - Alternatively, enable your IDE's auto-build (IntelliJ) to trigger restarts without running the Gradle watcher.

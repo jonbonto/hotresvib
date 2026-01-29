@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/hotresvib
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/hotresvib}
     driver-class-name: org.postgresql.Driver
-    username: hotresvib_user
-    password: "hotresvib_pass"
+    username: ${SPRING_DATASOURCE_USERNAME:hotresvib_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:hotresvib_pass}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
@@ -31,11 +31,11 @@ spring:
 
 security:
   jwt:
-    secret: "0123456789abcdef0123456789abcdef"
+    secret: ${JWT_SECRET:0123456789abcdef0123456789abcdef}
 
 stripe:
-  api-key-secret: "sk_test_dummy_key_replace_in_production"
-  webhook-secret: "whsec_dummy_secret_replace_in_production"
+  api-key-secret: ${STRIPE_API_KEY_SECRET:sk_test_dummy_key_replace_in_production}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_dummy_secret_replace_in_production}
 
 reservation:
   payment-timeout-minutes: 30

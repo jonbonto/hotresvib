@@ -45,7 +45,8 @@ class HotelController(
     @GetMapping("/{id}")
     fun getHotel(@PathVariable id: UUID): ResponseEntity<HotelResponse> {
         return try {
-            val hotel = hotelRepository.findById(HotelId(id))
+            // Use a safe lookup by comparing raw UUID to avoid potential repository ID conversion issues
+            val hotel = hotelRepository.findAll().find { it.id.value == id }
                 ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
 
             ResponseEntity.ok(HotelResponse(

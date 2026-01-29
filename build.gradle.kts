@@ -23,6 +23,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("com.h2database:h2")
     implementation("org.postgresql:postgresql")
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2")
     implementation("com.stripe:stripe-java:24.9.0")
     implementation(libs.jjwt.api)
@@ -97,6 +98,7 @@ tasks.register<org.springframework.boot.gradle.tasks.run.BootRun>("bootRunDev") 
     group = "application"
     description = "Run the application with the dev Spring profile"
     systemProperty("spring.profiles.active", "dev")
-    classpath = sourceSets["main"].runtimeClasspath
+    // Include developmentOnly dependencies (devtools) on the bootRun classpath so restart works
+    classpath = sourceSets["main"].runtimeClasspath + configurations.getByName("developmentOnly")
     mainClass.set("com.hotresvib.HotResvibApplicationKt")
 }

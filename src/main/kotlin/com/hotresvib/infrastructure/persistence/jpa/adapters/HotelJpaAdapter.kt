@@ -4,6 +4,7 @@ import com.hotresvib.application.port.HotelRepository
 import com.hotresvib.domain.hotel.Hotel
 import com.hotresvib.domain.shared.HotelId
 import com.hotresvib.infrastructure.persistence.jpa.HotelJpaRepository
+import java.util.UUID
 import org.springframework.context.annotation.Primary
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Repository
 @Repository
 @Primary
 class HotelJpaAdapter(private val repo: HotelJpaRepository) : HotelRepository {
-    override fun findById(id: HotelId): Hotel? = repo.findById(id).orElse(null)
+    override fun findById(id: HotelId): Hotel? = repo.findById(id.value).orElse(null)
 
     override fun findAll(): List<Hotel> = repo.findAll()
 
