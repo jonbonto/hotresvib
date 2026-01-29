@@ -24,6 +24,7 @@ dependencies {
     implementation("com.h2database:h2")
     implementation("org.postgresql:postgresql")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2")
+    implementation("com.stripe:stripe-java:24.9.0")
     implementation(libs.jjwt.api)
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")

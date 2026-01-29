@@ -34,6 +34,15 @@ data class Payment(
     @Column(name = "transaction_id")
     val transactionId: String?,
 
+    @Column(name = "payment_intent_id")
+    val paymentIntentId: String?,
+
+    @Column(name = "metadata", columnDefinition = "TEXT")
+    val metadata: String?,
+
+    @Column(name = "idempotency_key", unique = true)
+    val idempotencyKey: String?,
+
     @Column(name = "created_at", nullable = false)
     val createdAt: Instant
 )

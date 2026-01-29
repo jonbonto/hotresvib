@@ -39,6 +39,9 @@ class PaymentServiceImpl : PaymentService {
             status = PaymentStatus.COMPLETED,
             paymentMethod = paymentMethod,
             transactionId = "TXN_" + java.util.UUID.randomUUID().toString().substring(0, 8).uppercase(),
+            paymentIntentId = null,
+            metadata = null,
+            idempotencyKey = null,
             createdAt = java.time.Instant.now()
         )
     }
@@ -54,6 +57,9 @@ class PaymentServiceImpl : PaymentService {
             status = PaymentStatus.REFUNDED,
             paymentMethod = "REFUND",
             transactionId = null,
+            paymentIntentId = null,
+            metadata = null,
+            idempotencyKey = null,
             createdAt = java.time.Instant.now()
         )
     }

@@ -19,6 +19,16 @@ class InMemoryPaymentRepository : PaymentRepository {
         synchronized(lock) {
             payments.values.filter { it.reservationId == reservationId }
         }
+    
+    override fun findByPaymentIntentId(paymentIntentId: String): Payment? =
+        synchronized(lock) {
+            payments.values.find { it.paymentIntentId == paymentIntentId }
+        }
+    
+    override fun findByIdempotencyKey(idempotencyKey: String): Payment? =
+        synchronized(lock) {
+            payments.values.find { it.idempotencyKey == idempotencyKey }
+        }
 
     override fun save(payment: Payment): Payment {
         synchronized(lock) {

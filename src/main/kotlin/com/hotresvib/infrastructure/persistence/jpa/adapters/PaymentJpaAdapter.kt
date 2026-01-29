@@ -14,6 +14,10 @@ class PaymentJpaAdapter(private val repo: PaymentJpaRepository) : PaymentReposit
     override fun findById(id: UUID): Payment? = repo.findById(id).orElse(null)
 
     override fun findByReservationId(reservationId: ReservationId): List<Payment> = repo.findByReservationId(reservationId)
+    
+    override fun findByPaymentIntentId(paymentIntentId: String): Payment? = repo.findByPaymentIntentId(paymentIntentId)
+    
+    override fun findByIdempotencyKey(idempotencyKey: String): Payment? = repo.findByIdempotencyKey(idempotencyKey)
 
     override fun save(payment: Payment): Payment = repo.save(payment)
 }

@@ -9,9 +9,12 @@ import java.time.Instant
 import jakarta.persistence.*
 
 enum class ReservationStatus {
-    PENDING,
-    CONFIRMED,
-    CANCELLED
+    DRAFT,              // Initial state when reservation created
+    PENDING_PAYMENT,    // Payment initiated, waiting for confirmation
+    CONFIRMED,          // Payment successful, reservation confirmed
+    CANCELLED,          // User cancelled before check-in
+    EXPIRED,            // Payment timeout reached
+    REFUNDED            // Cancelled reservation with refund processed
 }
 
 @Entity

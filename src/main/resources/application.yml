@@ -33,6 +33,13 @@ security:
   jwt:
     secret: "0123456789abcdef0123456789abcdef"
 
+stripe:
+  api-key-secret: "sk_test_dummy_key_replace_in_production"
+  webhook-secret: "whsec_dummy_secret_replace_in_production"
+
+reservation:
+  payment-timeout-minutes: 30
+
 logging:
   level:
     org.springframework.jdbc.datasource.init.ScriptUtils: DEBUG

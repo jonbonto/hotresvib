@@ -2,6 +2,7 @@ package com.hotresvib.infrastructure.persistence.inmemory
 
 import com.hotresvib.application.port.ReservationRepository
 import com.hotresvib.domain.reservation.Reservation
+import com.hotresvib.domain.reservation.ReservationStatus
 import com.hotresvib.domain.shared.ReservationId
 import com.hotresvib.domain.shared.UserId
 import java.util.concurrent.ConcurrentHashMap
@@ -18,6 +19,11 @@ class InMemoryReservationRepository : ReservationRepository {
     override fun findByUserId(userId: UserId): List<Reservation> =
         synchronized(lock) {
             storage.values.filter { it.userId == userId }
+        }
+    
+    override fun findByStatus(status: ReservationStatus): List<Reservation> =
+        synchronized(lock) {
+            storage.values.filter { it.status == status }
         }
 
     override fun save(reservation: Reservation): Reservation {

@@ -9,4 +9,6 @@ import java.util.UUID
 @Repository
 interface PaymentJpaRepository : JpaRepository<Payment, UUID> {
     fun findByReservationId(reservationId: ReservationId): List<Payment>
+    fun findByPaymentIntentId(paymentIntentId: String): Payment?
+    fun findByIdempotencyKey(idempotencyKey: String): Payment?
 }

@@ -7,5 +7,7 @@ import java.util.UUID
 interface PaymentRepository {
     fun findById(id: UUID): Payment?
     fun findByReservationId(reservationId: ReservationId): List<Payment>
+    fun findByPaymentIntentId(paymentIntentId: String): Payment?
+    fun findByIdempotencyKey(idempotencyKey: String): Payment?
     fun save(payment: Payment): Payment
 }
