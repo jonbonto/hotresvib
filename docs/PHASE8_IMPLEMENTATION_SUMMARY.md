@@ -135,6 +135,10 @@ email:
     multiplier: 2.0
 ```
 
+### Developer Tools
+- **Swagger (OpenAPI)** is enabled via springdoc; UI available at `/swagger-ui.html`. ✅
+- **Test Coverage**: JaCoCo is configured; run `./gradlew test jacocoTestReport` and view `build/reports/jacoco/test/html/index.html`. ✅
+
 ### Environment Variables
 - `SENDGRID_API_KEY` - SendGrid API key for email sending
 - `EMAIL_FROM` - Sender email address

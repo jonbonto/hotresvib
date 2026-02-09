@@ -99,6 +99,14 @@ stripe:
   api-key-secret: ${STRIPE_API_KEY_SECRET:sk_test_dummy_key_replace_in_production}
   webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_dummy_secret_replace_in_production}
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    persist-authorization: true
+
 reservation:
   payment-timeout-minutes: 30
 

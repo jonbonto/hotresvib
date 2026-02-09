@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.spring)
     kotlin("plugin.jpa") version "1.9.25"
+    id("jacoco")
 }
 
 group = "com.hotresvib"
@@ -120,3 +121,44 @@ tasks.register<org.springframework.boot.gradle.tasks.run.BootRun>("bootRunDev") 
     classpath = sourceSets["main"].runtimeClasspath + configurations.getByName("developmentOnly")
     mainClass.set("com.hotresvib.HotResvibApplicationKt")
 }
+
+// JaCoCo test coverage configuration
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+// Ensure test report is generated after running tests
+tasks.withType<Test> {
+    useJUnitPlatform()
+    finalizedBy(tasks.named("jacocoTestReport"))
+}
+
+// Configure JaCoCo report
+tasks.register<org.gradle.testing.jacoco.tasks.JacocoReport>("jacocoTestReport") {
+    dependsOn(tasks.named("test"))
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+    val classesDirs = fileTree("build/classes/kotlin/main") { include("**/*.class") }
+    classDirectories.setFrom(files(classesDirs))
+    sourceDirectories.setFrom(files("src/main/kotlin"))
+    executionData.setFrom(files("build/jacoco/test.exec"))
+}
+
+// Enforce minimum coverage
+tasks.register<org.gradle.testing.jacoco.tasks.JacocoCoverageVerification>("jacocoTestCoverageVerification") {
+    dependsOn(tasks.named("test"))
+    violationRules {
+        rule {
+            limit {
+                minimum = "0.80".toBigDecimal()
+            }
+        }
+    }
+}
+
+tasks.register("checkCoverage") {
+    dependsOn(tasks.named("jacocoTestReport"), tasks.named("jacocoTestCoverageVerification"))
+}
+
