@@ -29,6 +29,11 @@ dependencies {
     implementation(libs.jjwt.api)
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
+    
+    // Security hardening (Phase 11)
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
+    
     implementation(libs.kotlin.reflect)
     testImplementation(libs.spring.boot.starter.test)
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")

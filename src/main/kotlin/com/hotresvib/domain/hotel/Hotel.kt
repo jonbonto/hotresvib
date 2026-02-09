@@ -1,10 +1,7 @@
 package com.hotresvib.domain.hotel
 
 import com.hotresvib.domain.shared.HotelId
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.Table
+import jakarta.persistence.*
 
 @JvmInline
 value class HotelName(val value: String) {
@@ -29,7 +26,12 @@ data class Hotel(
     val country: String,
 
     @Column(name = "is_featured", nullable = false)
-    val isFeatured: Boolean = false
+    val isFeatured: Boolean = false,
+    
+    // Phase 11: Optimistic locking
+    @Version
+    @Column(name = "version")
+    val version: Long? = null
 ) {
     init {
         require(city.isNotBlank()) { "City is required" }

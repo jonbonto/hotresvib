@@ -3,6 +3,7 @@ package com.hotresvib.application.web
 import com.hotresvib.application.dto.*
 import com.hotresvib.application.service.AuthenticationService
 import com.hotresvib.domain.shared.UserId
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -12,6 +13,7 @@ import java.util.UUID
 
 /**
  * REST controller for authentication endpoints
+ * Phase 11: Includes rate limiting, account lockout, and audit logging
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -23,16 +25,22 @@ class AuthController(
     /**
      * Register a new user
      * POST /api/auth/register
+     * Phase 11: Rate limited (3 requests per hour per IP)
      */
     @PostMapping("/register")
-    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<RegisterResponse> {
+    fun register(
+        @Valid @RequestBody request: RegisterRequest,
+        httpRequest: HttpServletRequest
+    ): ResponseEntity<RegisterResponse> {
         return try {
-            val response = authenticationService.register(request)
+            val response = authenticationService.register(request, httpRequest)
             ResponseEntity.status(HttpStatus.CREATED).body(response)
         } catch (e: IllegalArgumentException) {
             when {
                 e.message?.contains("already registered") == true ->
                     ResponseEntity.status(HttpStatus.CONFLICT).body(null)
+                e.message?.contains("does not meet requirements") == true ->
+                    ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
                 e.message?.contains("email", ignoreCase = true) == true ||
                 e.message?.contains("password", ignoreCase = true) == true ||
                 e.message?.contains("display name", ignoreCase = true) == true ->
@@ -46,14 +54,23 @@ class AuthController(
     /**
      * Login user and get tokens
      * POST /api/auth/login
+     * Phase 11: Rate limited (5 requests per minute per IP), includes account lockout check
      */
     @PostMapping("/login")
-    fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<AuthResponse> {
+    fun login(
+        @Valid @RequestBody request: LoginRequest,
+        httpRequest: HttpServletRequest
+    ): ResponseEntity<AuthResponse> {
         return try {
-            val response = authenticationService.login(request)
+            val response = authenticationService.login(request, httpRequest)
             ResponseEntity.ok(response)
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null)
+            when {
+                e.message?.contains("locked") == true ->
+                    ResponseEntity.status(HttpStatus.FORBIDDEN).body(null)
+                else ->
+                    ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null)
+            }
         }
     }
 

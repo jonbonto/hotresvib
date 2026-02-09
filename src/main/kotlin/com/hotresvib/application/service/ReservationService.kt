@@ -20,8 +20,13 @@ import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
+/**
+ * Service for managing hotel reservations.
+ * Phase 11: Includes edge case validations, pessimistic locking, and timezone handling.
+ */
 @Service
 class ReservationService(
     private val reservationRepository: ReservationRepository,
@@ -30,9 +35,35 @@ class ReservationService(
     private val availabilityRepository: AvailabilityRepository,
     private val clock: Clock = Clock.systemUTC()
     ) {
+    
+    companion object {
+        private const val MAX_STAY_DURATION_NIGHTS = 30L
+        private const val DEFAULT_CHECKIN_HOUR = 15 // 3 PM
+    }
 
     fun createReservation(userId: UserId, roomId: RoomId, stay: DateRange): Reservation {
         require(stay.startDate.isBefore(stay.endDate)) { "Stay must be at least one night" }
+        
+        // Phase 11: Validate minimum stay duration (1 night)
+        val nights = ChronoUnit.DAYS.between(stay.startDate, stay.endDate)
+        require(nights >= 1) { "Minimum stay duration is 1 night" }
+        
+        // Phase 11: Validate maximum stay duration (30 nights)
+        require(nights <= MAX_STAY_DURATION_NIGHTS) { "Maximum stay duration is $MAX_STAY_DURATION_NIGHTS nights" }
+        
+        // Phase 11: Validate that check-in date is not in the past
+        val today = LocalDate.now(clock)
+        require(!stay.startDate.isBefore(today)) { "Check-in date must be in the future" }
+        
+        // Phase 11: Validate same-day booking (check-in time not passed)
+        if (stay.startDate.isEqual(today)) {
+            val now = Instant.now(clock)
+            val zoneId = ZoneId.of("UTC")
+            val currentHour = java.time.LocalTime.now(zoneId).hour
+            require(currentHour < DEFAULT_CHECKIN_HOUR) { 
+                "Same-day booking not available. Check-in time is $DEFAULT_CHECKIN_HOUR PM"
+            }
+        }
 
         val room = roomRepository.findById(roomId) ?: throw IllegalArgumentException("Room not found")
 
@@ -48,7 +79,6 @@ class ReservationService(
             cursor = cursor.plusDays(1)
         }
 
-        val nights = ChronoUnit.DAYS.between(stay.startDate, stay.endDate)
         val applicableRate = pricingRuleRepository.findByRoomId(roomId)
             .filter { it.range.overlaps(stay) }
             .minWithOrNull(

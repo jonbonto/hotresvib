@@ -42,5 +42,11 @@ data class Reservation(
     val status: ReservationStatus,
 
     @Column(name = "created_at", nullable = false)
-    val createdAt: Instant
+    val createdAt: Instant,
+    
+    // Phase 11: Optimistic locking
+    @Version
+    @Column(name = "version")
+    val version: Long? = null
 )
+

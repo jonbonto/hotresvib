@@ -1,6 +1,7 @@
 package com.hotresvib.infrastructure.config
 
 import com.hotresvib.infrastructure.security.JwtAuthenticationFilter
+import com.hotresvib.infrastructure.security.SecurityHeadersFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
@@ -17,15 +18,34 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
-    private val jwtAuthenticationFilter: JwtAuthenticationFilter
+    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    private val securityHeadersFilter: SecurityHeadersFilter
 ) {
 
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .csrf { it.disable() }
+            // Phase 11: Enable CSRF protection for state-changing operations
+            .csrf { csrf ->
+                csrf.csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
+                // Disable CSRF for stateless API endpoints (JWT protected)
+                csrf.ignoringRequestMatchers("/api/auth/**", "/api/webhooks/**", "/api/reservations/**")
+            }
             .cors { it.configurationSource(corsConfigurationSource()) }
+            // Phase 11: Stateless session management
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            // Phase 11: Security headers
+            .headers { headers ->
+                headers.frameOptions { it.deny() }
+                headers.xssProtection()
+                headers.contentSecurityPolicy { csp ->
+                    csp.policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;")
+                }
+                headers.httpStrictTransportSecurity { hsts ->
+                    hsts.maxAgeInSeconds(31536000)
+                    hsts.includeSubDomains(true)
+                }
+            }
             .authorizeHttpRequests {
                 it.requestMatchers("/actuator/health").permitAll()
                 it.requestMatchers("/api/auth/**").permitAll()
@@ -37,6 +57,8 @@ class SecurityConfig(
                 it.requestMatchers("/v3/api-docs/**").permitAll()
                 it.anyRequest().authenticated()
             }
+            // Phase 11: Add security filters
+            .addFilterBefore(securityHeadersFilter, UsernamePasswordAuthenticationFilter::class.java)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
@@ -53,7 +75,8 @@ class SecurityConfig(
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
         configuration.allowedHeaders = listOf("*")
         configuration.allowCredentials = true
-        configuration.exposedHeaders = listOf("Authorization")
+        configuration.exposedHeaders = listOf("Authorization", "X-CSRF-TOKEN")
+        configuration.maxAge = 3600
 
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", configuration)

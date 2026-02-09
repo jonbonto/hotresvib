@@ -9,7 +9,9 @@ fun main() {
 
     val flyway = Flyway.configure()
         .dataSource(url, user, pw)
-        .locations("classpath:db/migration")
+        // Use filesystem location to avoid picking up nested demo migrations which can
+        // cause duplicate-version conflicts when both directories exist on the classpath
+        .locations("filesystem:src/main/resources/db/migration")
         .load()
 
     val result = flyway.migrate()

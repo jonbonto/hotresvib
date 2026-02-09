@@ -32,6 +32,11 @@ data class Availability(
     val range: DateRange,
 
     @Column(name = "available", nullable = false)
-    val available: AvailableQuantity
+    val available: AvailableQuantity,
+    
+    // Phase 11: Optimistic locking
+    @Version
+    @Column(name = "version")
+    val version: Long? = null
 )
 
