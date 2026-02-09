@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Confirmed</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 40px 20px;
+        }
+        .success-box {
+            background-color: #e8f8f5;
+            border: 2px solid #27ae60;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .success-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .success-box p {
+            color: #16a085;
+            font-size: 16px;
+        }
+        .receipt {
+            background-color: #ecf0f1;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            border-left: 4px solid #27ae60;
+        }
+        .receipt-header {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #bdc3c7;
+        }
+        .receipt-row:last-child {
+            border-bottom: none;
+        }
+        .receipt-label {
+            color: #34495e;
+        }
+        .receipt-value {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        .amount-box {
+            background-color: #fff9e6;
+            border: 2px solid #f39c12;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .amount-label {
+            color: #d68910;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .total-amount {
+            font-size: 36px;
+            font-weight: bold;
+            color: #f39c12;
+        }
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #1565c0;
+        }
+        .next-steps {
+            background-color: #f3e5f5;
+            border-left: 4px solid #9c27b0;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .next-steps h4 {
+            color: #6a1b9a;
+            margin-bottom: 10px;
+        }
+        .next-steps ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .next-steps li {
+            color: #7b1fa2;
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        .next-steps li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+        .cta-button:hover {
+            opacity: 0.9;
+        }
+        .footer {
+            background-color: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer a {
+            color: #27ae60;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✓ Payment Confirmed</h1>
+            <p>Your payment has been successfully processed</p>
+        </div>
+
+        <div class="content">
+            <div class="success-box">
+                <div class="success-icon">✓</div>
+                <p>Thank you for your payment! Your reservation is now secure.</p>
+            </div>
+
+            <p style="margin-bottom: 20px;">Dear <strong th:text="${guestName}">Guest</strong>,</p>
+            <p>Your payment has been processed successfully. Your booking is confirmed and you're all set for your stay!</p>
+
+            <div class="receipt">
+                <div class="receipt-header">Payment Receipt</div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Booking ID</span>
+                    <span class="receipt-value" th:text="${bookingId}">BOOK-12345</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Transaction ID</span>
+                    <span class="receipt-value" th:text="${transactionId}">TXN-987654</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Payment Date</span>
+                    <span class="receipt-value" th:text="${#calendars.format(#calendars.createNow(), 'MMM dd, yyyy')}">Jan 10, 2024</span>
+                </div>
+                <div class="receipt-row">
+                    <span class="receipt-label">Payment Status</span>
+                    <span class="receipt-value" style="color: #27ae60;">Confirmed</span>
+                </div>
+            </div>
+
+            <div class="amount-box">
+                <div class="amount-label">Amount Paid</div>
+                <div class="total-amount" th:text="'$' + ${#numbers.formatDecimal(amount, 1, 2)}">$299.99</div>
+            </div>
+
+            <div class="info-box">
+                <strong>📧 Email Confirmation:</strong> A detailed receipt has been sent to your email. 
+                Please keep it for your records.
+            </div>
+
+            <div class="next-steps">
+                <h4>What's Next?</h4>
+                <ul>
+                    <li>You'll receive a check-in reminder 24 hours before arrival</li>
+                    <li>Review your booking details in your account dashboard</li>
+                    <li>Add special requests or contact the hotel directly if needed</li>
+                    <li>Pack your bags and prepare for an amazing stay!</li>
+                </ul>
+            </div>
+
+            <p style="text-align: center;">
+                <a href="#" class="cta-button">View Your Booking</a>
+            </p>
+
+            <p style="margin-top: 30px; color: #666;">
+                If you have any questions, contact us at 
+                <a href="mailto:support@hotresvib.com" style="color: #27ae60; text-decoration: none;">support@hotresvib.com</a>
+            </p>
+
+            <p style="margin-top: 20px; color: #999;">
+                We're excited to welcome you!<br>
+                <strong>The HotResvib Team</strong>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; <span th:text="${year}">2024</span> <strong th:text="${appName}">HotResvib</strong>. All rights reserved.</p>
+            <p>
+                <a href="#">Manage Preferences</a> | 
+                <a href="#">Unsubscribe</a> | 
+                <a href="#">Contact Support</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -52,6 +52,13 @@ data class User(
     // Phase 11: Timezone handling
     @Column(name = "timezone", nullable = false)
     val timezone: String = "UTC",
+
+    // Email preferences and unsubscribe support (Phase 8)
+    @Column(name = "unsubscribe_token", unique = true)
+    val unsubscribeToken: String? = null,
+
+    @Column(name = "marketing_opt_in", nullable = false)
+    val marketingOptIn: Boolean = true,
     
     // Phase 11: Optimistic locking
     @Version
@@ -80,4 +87,12 @@ data class User(
     fun withResetLoginAttempts(): User {
         return copy(failedLoginAttempts = 0, lockedUntil = null)
     }
+
+    /**
+     * Helpers for unsubscribe flow
+     */
+    fun withUnsubscribeToken(token: String): User = copy(unsubscribeToken = token)
+
+    fun withMarketingOptOut(): User = copy(marketingOptIn = false)
+
 }

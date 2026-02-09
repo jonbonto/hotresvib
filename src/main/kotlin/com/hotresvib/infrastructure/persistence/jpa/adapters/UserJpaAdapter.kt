@@ -15,5 +15,7 @@ class UserJpaAdapter(private val repo: UserJpaRepository) : UserRepository {
 
     override fun findByEmail(email: EmailAddress): User? = repo.findByEmail(email.value)
 
+    override fun findByUnsubscribeToken(token: String): User? = repo.findByUnsubscribeToken(token)
+
     override fun save(user: User): User = repo.save(user)
 }

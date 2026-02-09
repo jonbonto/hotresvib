@@ -7,5 +7,6 @@ import com.hotresvib.domain.user.User
 interface UserRepository {
     fun findById(id: UserId): User?
     fun findByEmail(email: EmailAddress): User?
+    fun findByUnsubscribeToken(token: String): User?
     fun save(user: User): User
 }

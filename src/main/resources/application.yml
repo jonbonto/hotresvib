@@ -67,6 +67,30 @@ sentry:
   environment: ${SENTRY_ENVIRONMENT:dev}
   enabled: ${SENTRY_ENABLED:false}
 
+email:
+  enabled: true
+  async:
+    enabled: true
+    core-pool-size: 5
+    max-pool-size: 20
+    queue-capacity: 100
+  retry:
+    max-attempts: 3
+    initial-delay-ms: 1000
+    max-delay-ms: 10000
+    multiplier: 2.0
+  sendgrid:
+    api-key: ${SENDGRID_API_KEY:SG.dummy_key_for_development}
+    from-email: ${EMAIL_FROM:noreply@hotresvib.com}
+    from-name: ${EMAIL_FROM_NAME:HotResvib}
+  smtp:
+    enabled: false
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    from-email: ${EMAIL_FROM:noreply@hotresvib.com}
+
 security:
   jwt:
     secret: ${JWT_SECRET:0123456789abcdef0123456789abcdef}

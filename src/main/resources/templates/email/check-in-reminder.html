@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in Reminder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 40px 20px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .hotel-info {
+            background-color: #fef5e7;
+            border-left: 4px solid #f39c12;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 12px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0e5d8;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .info-value {
+            color: #e74c3c;
+            font-weight: 500;
+        }
+        .checklist {
+            background-color: #ecf0f1;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .checklist h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 8px 0;
+        }
+        .checklist-item:before {
+            content: "✓";
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            background-color: #27ae60;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            margin-right: 12px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .important-box {
+            background-color: #ffebee;
+            border: 2px dashed #e74c3c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .important-box strong {
+            color: #c0392b;
+        }
+        .address-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .address-box h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .address-box p {
+            color: #34495e;
+            line-height: 1.8;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+        .cta-button:hover {
+            opacity: 0.9;
+        }
+        .footer {
+            background-color: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer a {
+            color: #f39c12;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 Check-in Reminder</h1>
+            <p>Your stay begins tomorrow!</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                <p>Hi <strong th:text="${guestName}">Guest</strong>,</p>
+                <p>Excited for your stay? We can't wait to welcome you! Here's everything you need to know before you arrive.</p>
+            </div>
+
+            <div class="hotel-info">
+                <div class="info-row">
+                    <span class="info-label">Hotel</span>
+                    <span class="info-value" th:text="${hotelName}">Hotel Name</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Check-in Date</span>
+                    <span class="info-value" th:text="${checkInDate}">2024-01-15</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Check-in Time</span>
+                    <span class="info-value" th:text="${checkInTime}">3:00 PM</span>
+                </div>
+            </div>
+
+            <div class="address-box">
+                <h4>📍 Hotel Location</h4>
+                <p th:text="${hotelAddress}">123 Main Street, New York, NY 10001</p>
+            </div>
+
+            <div class="checklist">
+                <h3>Things to Remember:</h3>
+                <div class="checklist-item">Bring your confirmation number or ID</div>
+                <div class="checklist-item">Check-in opens at 3:00 PM</div>
+                <div class="checklist-item">Early check-in may be available upon request</div>
+                <div class="checklist-item">Check-out is at 11:00 AM</div>
+                <div class="checklist-item">Valid photo ID required at check-in</div>
+            </div>
+
+            <div class="important-box">
+                <strong>⚠ Important:</strong> Please note that your room will be held until 6:00 PM on your check-in date. 
+                If you expect to arrive later, please contact the hotel directly.
+            </div>
+
+            <p>
+                <a href="#" class="cta-button">Modify Reservation</a>
+            </p>
+
+            <p style="margin-top: 30px; color: #666;">
+                Have questions or need to make changes? Our support team is here to help at 
+                <a href="mailto:support@hotresvib.com" style="color: #f39c12; text-decoration: none;">support@hotresvib.com</a>
+            </p>
+
+            <p style="margin-top: 20px; color: #999;">
+                See you soon!<br>
+                <strong>The HotResvib Team</strong>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; <span th:text="${year}">2024</span> <strong th:text="${appName}">HotResvib</strong>. All rights reserved.</p>
+            <p>
+                <a href="#">Manage Preferences</a> | 
+                <a href="#">Unsubscribe</a> | 
+                <a href="#">Contact Support</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

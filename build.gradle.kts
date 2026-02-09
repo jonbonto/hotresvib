@@ -30,6 +30,12 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
     
+    // Email Notifications (Phase 8)
+    implementation("com.sendgrid:sendgrid-java:4.10.2")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("io.github.resilience4j:resilience4j-spring-boot3:2.1.0")
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker:2.1.0")
+    
     // Security hardening (Phase 11)
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("io.micrometer:micrometer-registry-prometheus")

@@ -20,6 +20,11 @@ class InMemoryUserRepository : UserRepository {
             storage.values.firstOrNull { it.email == email }
         }
 
+    override fun findByUnsubscribeToken(token: String): User? =
+        synchronized(lock) {
+            storage.values.firstOrNull { it.unsubscribeToken == token }
+        }
+
     override fun save(user: User): User {
         synchronized(lock) {
             storage[user.id] = user

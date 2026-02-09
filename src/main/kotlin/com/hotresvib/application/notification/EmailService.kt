@@ -4,7 +4,32 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.math.BigDecimal
 
+/**
+ * Data class for email requests
+ */
+data class EmailRequest(
+    val toEmail: String,
+    val toName: String? = null,
+    val subject: String,
+    val htmlContent: String,
+    val ccEmails: List<String> = emptyList(),
+    val bccEmails: List<String> = emptyList(),
+    val replyToEmail: String? = null
+)
+
 interface EmailService {
+    /**
+     * Send a single email
+     * @return true if email was sent successfully
+     */
+    fun sendEmail(emailRequest: EmailRequest): Boolean
+
+    /**
+     * Send multiple emails in batch
+     * @return map of email to success status
+     */
+    fun sendBatchEmails(requests: List<EmailRequest>): Map<String, Boolean>
+
     fun sendConfirmationEmail(
         email: String,
         displayName: String,
@@ -31,6 +56,15 @@ interface EmailService {
 
 @Service
 class EmailServiceImpl : EmailService {
+    
+    override fun sendEmail(emailRequest: EmailRequest): Boolean {
+        logEmail(emailRequest)
+        return true
+    }
+
+    override fun sendBatchEmails(requests: List<EmailRequest>): Map<String, Boolean> {
+        return requests.associate { it.toEmail to sendEmail(it) }
+    }
     
     override fun sendConfirmationEmail(
         email: String,
@@ -60,7 +94,7 @@ class EmailServiceImpl : EmailService {
             Thank you for booking with HotResvib!
         """.trimIndent()
         
-        logEmail(email, subject, body)
+        logSimpleEmail(email, subject, body)
     }
 
     override fun sendCancellationEmail(
@@ -79,7 +113,7 @@ class EmailServiceImpl : EmailService {
             If you have questions, please contact our support team.
         """.trimIndent()
         
-        logEmail(email, subject, body)
+        logSimpleEmail(email, subject, body)
     }
 
     override fun sendWelcomeEmail(
@@ -95,10 +129,21 @@ class EmailServiceImpl : EmailService {
             You can now browse and book hotels with us. Happy travels!
         """.trimIndent()
         
-        logEmail(email, subject, body)
+        logSimpleEmail(email, subject, body)
     }
 
-    private fun logEmail(email: String, subject: String, body: String) {
+    private fun logEmail(emailRequest: EmailRequest) {
+        println("""
+            ========== EMAIL LOG ==========
+            To: ${emailRequest.toEmail}
+            Subject: ${emailRequest.subject}
+            
+            ${emailRequest.htmlContent}
+            ================================
+        """.trimIndent())
+    }
+
+    private fun logSimpleEmail(email: String, subject: String, body: String) {
         // Log email for now (in production, send via email provider)
         println("""
             ========== EMAIL LOG ==========

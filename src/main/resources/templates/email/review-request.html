@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Your Experience</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 40px 20px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .experience-box {
+            background: linear-gradient(135deg, #f5e6ff 0%, #ede7f6 100%);
+            border-left: 4px solid #9b59b6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .experience-box h3 {
+            color: #6c3483;
+            margin-bottom: 10px;
+        }
+        .experience-box p {
+            color: #5b2c6f;
+            line-height: 1.6;
+        }
+        .rating-box {
+            background-color: #fff9e6;
+            border: 2px solid #f39c12;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .rating-label {
+            color: #d68910;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .stars {
+            font-size: 40px;
+            margin: 10px 0;
+            color: #f39c12;
+            letter-spacing: 5px;
+        }
+        .benefits {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .benefits h4 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+        }
+        .benefits ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .benefits li {
+            color: #558b2f;
+            margin: 10px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        .benefits li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .hotel-highlight {
+            background-color: #f0f4c3;
+            border-left: 4px solid #cddc39;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .hotel-highlight h4 {
+            color: #8d6e63;
+            margin-bottom: 8px;
+        }
+        .hotel-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #558b2f;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+        .cta-button:hover {
+            opacity: 0.9;
+        }
+        .timing-note {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #1565c0;
+        }
+        .footer {
+            background-color: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer a {
+            color: #9b59b6;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⭐ Share Your Experience</h1>
+            <p>Your feedback helps us improve</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                <p>Hi <strong th:text="${guestName}">Guest</strong>,</p>
+                <p>We hope you had a wonderful stay with us! We'd love to hear about your experience.</p>
+            </div>
+
+            <div class="experience-box">
+                <h3>Tell Us What You Think</h3>
+                <p>
+                    Your honest feedback is invaluable to us. Whether you loved your stay or have suggestions for improvement, 
+                    we want to hear from you. It only takes a few minutes!
+                </p>
+            </div>
+
+            <div class="hotel-highlight">
+                <h4>You stayed at:</h4>
+                <div class="hotel-name" th:text="${hotelName}">Grand Plaza Hotel</div>
+                <p style="color: #666; margin-top: 8px; font-size: 14px;" th:text="'Check-out: ' + ${checkOutDate}">Check-out: January 17, 2024</p>
+            </div>
+
+            <div class="rating-box">
+                <div class="rating-label">Rate Your Stay</div>
+                <div class="stars">★ ★ ★ ★ ★</div>
+                <p style="color: #d68910; margin-top: 10px;">
+                    Share your rating and help other travelers make informed decisions
+                </p>
+            </div>
+
+            <div class="benefits">
+                <h4>Why leave a review?</h4>
+                <ul>
+                    <li>Help other travelers find great accommodations</li>
+                    <li>Give the hotel team feedback to improve their services</li>
+                    <li>Earn loyalty points toward future bookings</li>
+                    <li>Be featured in our "Guest Reviews" section</li>
+                </ul>
+            </div>
+
+            <div class="timing-note">
+                <strong>📝 Quick Review:</strong> Your review can be as simple as a rating and a few sentences about your stay. 
+                It typically takes 2-3 minutes to complete.
+            </div>
+
+            <div style="text-align: center;">
+                <a th:href="${reviewLink}" target="_blank" class="cta-button">Leave a Review Now</a>
+            </div>
+
+            <p style="margin-top: 30px; color: #666;">
+                Thank you for choosing HotResvib and for taking the time to share your experience. 
+                Your feedback helps us provide better service to all our guests.
+            </p>
+
+            <p style="margin-top: 20px; color: #999;">
+                See you on your next trip!<br>
+                <strong>The HotResvib Team</strong>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; <span th:text="${year}">2024</span> <strong th:text="${appName}">HotResvib</strong>. All rights reserved.</p>
+            <p>
+                <a href="#">Manage Preferences</a> | 
+                <a th:href="${unsubscribeLink}" style="color:#9b59b6; text-decoration:none;">Unsubscribe</a> | 
+                <a href="#">Contact Support</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Cancellation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 40px 20px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .cancellation-details {
+            background-color: #f9f9f9;
+            border-left: 4px solid #95a5a6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 12px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .detail-value {
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+        .refund-box {
+            background-color: #e8f5e9;
+            border: 2px solid #4caf50;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .refund-label {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .refund-amount {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4caf50;
+        }
+        .reason-box {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .reason-label {
+            font-weight: 600;
+            color: #e65100;
+            margin-bottom: 10px;
+        }
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #1565c0;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+        .cta-button:hover {
+            opacity: 0.9;
+        }
+        .footer {
+            background-color: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer a {
+            color: #95a5a6;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Booking Cancelled</h1>
+            <p>Your reservation has been cancelled</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                <p>Dear <strong th:text="${guestName}">Guest</strong>,</p>
+                <p>We have processed the cancellation of your reservation. Below are the details of your cancellation and refund.</p>
+            </div>
+
+            <div class="cancellation-details">
+                <div class="detail-row">
+                    <span class="detail-label">Hotel</span>
+                    <span class="detail-value" th:text="${hotelName}">Hotel Name</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Booking ID</span>
+                    <span class="detail-value" th:text="${bookingId}">BOOK-12345</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Cancellation Date</span>
+                    <span class="detail-value" th:text="${#calendars.format(#calendars.createNow(), 'MMM dd, yyyy')}">Jan 10, 2024</span>
+                </div>
+            </div>
+
+            <div class="refund-box">
+                <div class="refund-label">Refund Amount</div>
+                <div class="refund-amount" th:text="'$' + ${#numbers.formatDecimal(refundAmount, 1, 2)}">$299.99</div>
+            </div>
+
+            <div class="reason-box" th:if="${cancelReason}">
+                <div class="reason-label">Reason for Cancellation</div>
+                <p th:text="${cancelReason}">Cancelled by guest</p>
+            </div>
+
+            <div class="info-box">
+                <strong>Refund Processing:</strong> Your refund will be processed within 5-7 business days to the original payment method. 
+                Please allow additional time depending on your bank or credit card company.
+            </div>
+
+            <p style="margin-top: 30px; color: #666;">
+                We're sorry to see you go! If you'd like to rebook another date or have any concerns about the cancellation, 
+                please don't hesitate to contact our support team at 
+                <a href="mailto:support@hotresvib.com" style="color: #95a5a6; text-decoration: none;">support@hotresvib.com</a>
+            </p>
+
+            <p style="margin-top: 20px;">
+                <a href="#" class="cta-button">Browse Available Deals</a>
+            </p>
+
+            <p style="margin-top: 20px; color: #999;">
+                We hope to welcome you again soon!<br>
+                <strong>The HotResvib Team</strong>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; <span th:text="${year}">2024</span> <strong th:text="${appName}">HotResvib</strong>. All rights reserved.</p>
+            <p>
+                <a href="#">Manage Preferences</a> | 
+                <a href="#">Unsubscribe</a> | 
+                <a href="#">Contact Support</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
