@@ -34,6 +34,13 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("io.micrometer:micrometer-registry-prometheus")
     
+    // Performance & Production (Phase 12)
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("io.lettuce:lettuce-core")
+    implementation("org.springframework.boot:spring-boot-starter-logging")
+    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
+    implementation("io.sentry:sentry-spring-boot-starter:6.28.0")
+    
     implementation(libs.kotlin.reflect)
     testImplementation(libs.spring.boot.starter.test)
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")

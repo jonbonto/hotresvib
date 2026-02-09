@@ -1,0 +1,119 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/hotresvib}
+    driver-class-name: org.postgresql.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:hotresvib_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:hotresvib_pass}
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      auto-commit: false
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        use_sql_comments: false
+        jdbc:
+          batch_size: 50
+          fetch_size: 100
+        order_inserts: true
+        order_updates: true
+        enable_lazy_load_no_trans: false
+        query:
+          plan_cache_max_size: 2048
+        generate_statistics: false
+    open-in-view: false
+
+  redis:
+    host: ${REDIS_HOST:redis}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    timeout: 2000
+    lettuce:
+      pool:
+        max-active: 50
+        max-idle: 25
+        min-idle: 10
+        max-wait: -1ms
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000  # 1 hour
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  compression:
+    enabled: true
+    min-response-size: 1024
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus,info
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: hotresvib
+      environment: production
+
+server:
+  shutdown: graceful
+  shutdown-wait-time: 30s
+  compression:
+    enabled: true
+    min-response-size: 1024
+
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: production
+  enabled: ${SENTRY_ENABLED:true}
+  traces-sample-rate: 0.1
+  debug: false
+
+logging:
+  file:
+    name: /var/log/hotresvib/app.log
+    max-size: 100MB
+    max-history: 30
+  level:
+    root: INFO
+    com.hotresvib: INFO
+    org.springframework.security: WARN
+    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: WARN
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{correlationId}] %-5level %logger{36} - %msg%n"
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+  require-https: true
+
+stripe:
+  api-key-secret: ${STRIPE_API_KEY_SECRET}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+
+reservation:
+  payment-timeout-minutes: 30
