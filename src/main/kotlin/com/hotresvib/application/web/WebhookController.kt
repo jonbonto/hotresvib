@@ -1,6 +1,6 @@
 package com.hotresvib.application.web
 
-import com.hotresvib.application.service.ReservationLifecycleService
+import com.hotresvib.application.service.ReservationApplicationService
 import com.hotresvib.application.service.StripePaymentService
 import com.hotresvib.application.port.PaymentRepository
 import com.hotresvib.domain.shared.ReservationId
@@ -17,7 +17,7 @@ import java.util.UUID
 @RestController
 @RequestMapping("/api/webhooks")
 class WebhookController(
-    private val reservationLifecycleService: ReservationLifecycleService,
+    private val reservationService: ReservationApplicationService,
     private val stripePaymentService: StripePaymentService,
     private val paymentRepository: PaymentRepository,
     @Value("\${stripe.webhook-secret:whsec_dummy}") private val webhookSecret: String
@@ -79,7 +79,7 @@ class WebhookController(
             val payment = paymentRepository.findByPaymentIntentId(paymentIntent.id)
             
             if (payment != null) {
-                reservationLifecycleService.confirmPayment(
+                reservationService.confirmPayment(
                     ReservationId(UUID.fromString(reservationId)),
                     payment.id
                 )
@@ -104,7 +104,7 @@ class WebhookController(
         logger.info("Payment failed for reservation $reservationId")
         
         try {
-            reservationLifecycleService.expireReservation(
+            reservationService.expireReservation(
                 ReservationId(UUID.fromString(reservationId))
             )
             logger.info("Reservation $reservationId expired due to payment failure")

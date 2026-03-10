@@ -5,7 +5,7 @@ import com.hotresvib.application.payment.PaymentServiceImpl
 import com.hotresvib.application.port.PaymentRepository
 import com.hotresvib.application.port.ReservationRepository
 import com.hotresvib.application.service.StripePaymentService
-import com.hotresvib.application.service.ReservationLifecycleService
+import com.hotresvib.application.service.ReservationApplicationService
 import com.hotresvib.domain.shared.ReservationId
 import com.hotresvib.domain.shared.Money
 import com.hotresvib.domain.payment.Payment
@@ -25,7 +25,7 @@ class PaymentController(
     private val paymentRepository: PaymentRepository,
     private val reservationRepository: ReservationRepository,
     private val stripePaymentService: StripePaymentService,
-    private val reservationLifecycleService: ReservationLifecycleService
+    private val reservationService: ReservationApplicationService
 ) {
 
     /**
@@ -65,7 +65,7 @@ class PaymentController(
             paymentRepository.save(payment)
             
             // Update reservation to PENDING_PAYMENT
-            reservationLifecycleService.initiatePayment(reservation.id)
+            reservationService.initiatePayment(reservation.id)
 
             ResponseEntity.ok(paymentIntentResponse)
         } catch (e: Exception) {

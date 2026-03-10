@@ -1,6 +1,6 @@
 package com.hotresvib.integration
 
-import com.hotresvib.application.service.ReservationService
+import com.hotresvib.application.service.ReservationApplicationService
 import com.hotresvib.domain.availability.Availability
 import com.hotresvib.domain.availability.AvailabilityId
 import com.hotresvib.domain.availability.AvailableQuantity
@@ -34,11 +34,12 @@ class ReservationServiceIntegrationTest {
     private val availabilityRepository = InMemoryAvailabilityRepository()
     private val fixedClock: Clock = Clock.fixed(Instant.parse("2024-05-01T00:00:00Z"), ZoneOffset.UTC)
 
-    private val service = ReservationService(
+    private val service = ReservationApplicationService(
         reservationRepository,
         roomRepository,
         pricingRuleRepository,
         availabilityRepository,
+        com.hotresvib.infrastructure.persistence.inmemory.InMemoryPaymentRepository(),
         fixedClock
     )
 
@@ -69,7 +70,7 @@ class ReservationServiceIntegrationTest {
 
         val persisted = reservationRepository.findById(reservation.id)
         assertThat(persisted).isNotNull
-        assertThat(persisted!!.status).isEqualTo(ReservationStatus.PENDING)
+        assertThat(persisted!!.status).isEqualTo(ReservationStatus.DRAFT)
         assertThat(persisted.totalAmount.amount).isEqualByComparingTo(BigDecimal("300.00"))
         assertThat(persisted.createdAt).isEqualTo(Instant.parse("2024-05-01T00:00:00Z"))
 

@@ -39,11 +39,12 @@ class ReservationServiceTest {
     private val pricingRuleRepository: PricingRuleRepository = InMemoryPricingRuleRepository()
     private val availabilityRepository: AvailabilityRepository = InMemoryAvailabilityRepository()
     private val fixedClock: Clock = Clock.fixed(Instant.parse("2024-01-01T00:00:00Z"), ZoneOffset.UTC)
-    private val service = ReservationService(
+    private val service = ReservationApplicationService(
         reservationRepository,
         roomRepository,
         pricingRuleRepository,
         availabilityRepository,
+        com.hotresvib.infrastructure.persistence.inmemory.InMemoryPaymentRepository(),
         fixedClock
     )
 
@@ -79,7 +80,7 @@ class ReservationServiceTest {
 
         val reservation = service.createReservation(UserId.generate(), roomId, stay)
 
-        assertThat(reservation.status).isEqualTo(ReservationStatus.PENDING)
+        assertThat(reservation.status).isEqualTo(ReservationStatus.DRAFT)
         assertThat(reservation.totalAmount.amount).isEqualByComparingTo(BigDecimal("240.00"))
         assertThat(availabilityRepository.findByRoomId(roomId).first().available.value).isEqualTo(1)
         assertThat(reservation.createdAt).isEqualTo(Instant.parse("2024-01-01T00:00:00Z"))

@@ -1,7 +1,7 @@
 package com.hotresvib.application.web
 
 import com.hotresvib.application.dto.*
-import com.hotresvib.application.service.ReservationService
+import com.hotresvib.application.service.ReservationApplicationService
 import com.hotresvib.application.service.AvailabilityApplicationService
 import com.hotresvib.application.port.*
 import com.hotresvib.domain.shared.RoomId
@@ -19,7 +19,7 @@ import java.util.UUID
 @RequestMapping("/api/reservations")
 @CrossOrigin(origins = ["*"])
 class ReservationController(
-    private val reservationService: ReservationService,
+    private val reservationService: ReservationApplicationService,
     private val availabilityService: AvailabilityApplicationService,
     private val priceCalculationService: com.hotresvib.application.service.PriceCalculationService,
     private val reservationRepository: ReservationRepository,

@@ -1,5 +1,8 @@
 package com.hotresvib.application.service
 
+import com.hotresvib.domain.availability.Availability
+import com.hotresvib.domain.availability.AvailabilityId
+import com.hotresvib.domain.availability.AvailableQuantity
 import com.hotresvib.domain.reservation.ReservationStatus
 import com.hotresvib.domain.shared.*
 import com.hotresvib.domain.user.EmailAddress
@@ -30,7 +33,7 @@ import java.util.UUID
 class ReservationLifecycleServiceIntegrationTest : DatabaseIntegrationTestBase() {
 
     @Autowired
-    private lateinit var reservationLifecycleService: ReservationLifecycleService
+    private lateinit var reservationService: ReservationApplicationService
 
     @Autowired
     private lateinit var reservationRepository: com.hotresvib.application.port.ReservationRepository
@@ -44,8 +47,11 @@ class ReservationLifecycleServiceIntegrationTest : DatabaseIntegrationTestBase()
     @Autowired
     private lateinit var roomRepository: com.hotresvib.infrastructure.persistence.jpa.RoomJpaRepository
 
-    private lateinit var testUserId: UserId
-    private lateinit var testRoomId: RoomId
+    @Autowired
+    private lateinit var availabilityRepository: com.hotresvib.infrastructure.persistence.jpa.AvailabilityJpaRepository
+
+    private var testUserId: UserId = UserId(UUID.randomUUID())
+    private var testRoomId: RoomId = RoomId(UUID.randomUUID())
 
     @BeforeEach
     fun setup() {
@@ -76,29 +82,36 @@ class ReservationLifecycleServiceIntegrationTest : DatabaseIntegrationTestBase()
         )
         roomRepository.save(room)
         testRoomId = room.id
+
+        val availability = Availability(
+            id = AvailabilityId(UUID.randomUUID()),
+            roomId = room.id,
+            range = DateRange(LocalDate.now().plusDays(1), LocalDate.now().plusDays(10)),
+            available = AvailableQuantity(2)
+        )
+        availabilityRepository.save(availability)
     }
 
     @Test
     fun `expireReservation should accept id obtained from database`() {
         // create and move to pending payment
         val stay = DateRange(LocalDate.now().plusDays(1), LocalDate.now().plusDays(2))
-        val reservation = reservationLifecycleService.createDraft(
+        val reservation = reservationService.createReservation(
             userId = testUserId,
             roomId = testRoomId,
-            stay = stay,
-            totalAmount = Money(BigDecimal("100.00"), "USD")
+            stay = stay
         )
 
-        val pending = reservationLifecycleService.initiatePayment(ReservationId(reservation.id))
+        val pending = reservationService.initiatePayment(reservation.id)
         assertEquals(ReservationStatus.PENDING_PAYMENT, pending.status)
 
         // expire using the same id object read from DB via service
-        val expired = reservationLifecycleService.expireReservation(ReservationId(pending.id))
+        val expired = reservationService.expireReservation(pending.id)
         assertEquals(ReservationStatus.EXPIRED, expired.status)
 
         // ensure repository still able to load by id after expiration
-        val found = reservationRepository.findById(ReservationId(expired.id))
+        val found = reservationRepository.findById(expired.id)
         assertNotNull(found)
-        assertEquals(ReservationStatus.EXPIRED, found.status)
+        assertEquals(ReservationStatus.EXPIRED, found?.status)
     }
 }

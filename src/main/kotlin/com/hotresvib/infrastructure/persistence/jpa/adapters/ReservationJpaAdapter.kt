@@ -3,7 +3,9 @@ package com.hotresvib.infrastructure.persistence.jpa.adapters
 import com.hotresvib.application.port.ReservationRepository
 import com.hotresvib.domain.reservation.Reservation
 import com.hotresvib.domain.reservation.ReservationStatus
+import com.hotresvib.domain.shared.DateRange
 import com.hotresvib.domain.shared.ReservationId
+import com.hotresvib.domain.shared.RoomId
 import com.hotresvib.domain.shared.UserId
 import com.hotresvib.infrastructure.persistence.jpa.ReservationJpaRepository
 import org.springframework.context.annotation.Primary
@@ -16,6 +18,9 @@ class ReservationJpaAdapter(private val repo: ReservationJpaRepository) : Reserv
     override fun findById(id: ReservationId): Reservation? = repo.findById(id.value).orElse(null)
 
     override fun findByUserId(userId: UserId): List<Reservation> = repo.findByUserId(userId)
+
+    override fun hasConflict(roomId: RoomId, range: DateRange, activeStatuses: Set<ReservationStatus>): Boolean =
+        repo.existsConflict(roomId, range.startDate, range.endDate, activeStatuses)
     
     override fun findByStatus(status: ReservationStatus): List<Reservation> = repo.findByStatus(status)
 

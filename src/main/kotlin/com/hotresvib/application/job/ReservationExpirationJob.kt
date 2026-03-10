@@ -1,6 +1,6 @@
 package com.hotresvib.application.job
 
-import com.hotresvib.application.service.ReservationLifecycleService
+import com.hotresvib.application.service.ReservationApplicationService
 import com.hotresvib.application.port.ReservationRepository
 import com.hotresvib.domain.reservation.ReservationStatus
 import org.slf4j.LoggerFactory
@@ -13,7 +13,7 @@ import java.time.Duration
 @Component
 class ReservationExpirationJob(
     private val reservationRepository: ReservationRepository,
-    private val reservationLifecycleService: ReservationLifecycleService,
+    private val reservationService: ReservationApplicationService,
     @Value("\${reservation.payment-timeout-minutes:30}") private val timeoutMinutes: Long
 ) {
     
@@ -37,7 +37,7 @@ class ReservationExpirationJob(
             
             expiredReservations.forEach { reservation ->
                 try {
-                    reservationLifecycleService.expireReservation(reservation.id)
+                    reservationService.expireReservation(reservation.id)
                     logger.info("Expired reservation ${reservation.id}")
                 } catch (e: Exception) {
                     logger.error("Failed to expire reservation ${reservation.id}: ${e.message}", e)
