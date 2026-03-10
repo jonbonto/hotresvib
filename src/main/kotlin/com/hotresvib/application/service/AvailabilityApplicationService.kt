@@ -15,6 +15,9 @@ class AvailabilityApplicationService(
         val range = DateRange(startDate, endDate)
         val availabilities = availabilityRepository.findByRoomId(roomId)
             .filter { it.range.overlaps(range) }
+        if (availabilities.isEmpty()) {
+            return false
+        }
         return availabilities.all { it.available.value > 0 }
     }
 

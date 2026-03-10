@@ -5,6 +5,9 @@ import com.hotresvib.domain.shared.RoomId
 
 interface AvailabilityRepository {
     fun findByRoomId(roomId: RoomId): List<Availability>
+    fun findByRoomIdForUpdate(roomId: RoomId): List<Availability> {
+        return findByRoomId(roomId)
+    }
     fun save(availability: Availability): Availability
     fun findByRoomIdAndDateRange(roomId: RoomId, startDate: java.time.LocalDate, endDate: java.time.LocalDate): List<Availability> {
         return findByRoomId(roomId).filter { it.range.overlaps(com.hotresvib.domain.shared.DateRange(startDate, endDate)) }

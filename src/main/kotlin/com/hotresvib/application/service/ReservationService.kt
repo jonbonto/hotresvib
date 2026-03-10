@@ -22,6 +22,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * Service for managing hotel reservations.
@@ -41,6 +42,7 @@ class ReservationService(
         private const val DEFAULT_CHECKIN_HOUR = 15 // 3 PM
     }
 
+    @Transactional
     fun createReservation(userId: UserId, roomId: RoomId, stay: DateRange): Reservation {
         require(stay.startDate.isBefore(stay.endDate)) { "Stay must be at least one night" }
         
@@ -67,7 +69,7 @@ class ReservationService(
 
         val room = roomRepository.findById(roomId) ?: throw IllegalArgumentException("Room not found")
 
-        val availabilityByDate = availabilityByDate(roomId, stay)
+        val availabilityByDate = availabilityByDate(roomId, stay, lockForUpdate = true)
 
         val coveringAvailability = mutableSetOf<Availability>()
         var cursor = stay.startDate
@@ -101,7 +103,6 @@ class ReservationService(
             createdAt = Instant.now(clock)
         )
 
-        reservationRepository.save(reservation)
         coveringAvailability.forEach { availability ->
             availabilityRepository.save(
                 availability.copy(
@@ -110,7 +111,7 @@ class ReservationService(
             )
         }
 
-        return reservation
+        return reservationRepository.save(reservation)
     }
 
     fun cancelReservation(reservationId: ReservationId): Reservation {
@@ -144,8 +145,18 @@ class ReservationService(
         return cancelledReservation
     }
 
-    private fun availabilityByDate(roomId: RoomId, stay: DateRange, missingMessage: String = "No availability for the selected dates"): Map<LocalDate, Availability> {
-        val overlappingAvailability = availabilityRepository.findByRoomId(roomId)
+    private fun availabilityByDate(
+        roomId: RoomId,
+        stay: DateRange,
+        missingMessage: String = "No availability for the selected dates",
+        lockForUpdate: Boolean = false
+    ): Map<LocalDate, Availability> {
+        val roomAvailability = if (lockForUpdate) {
+            availabilityRepository.findByRoomIdForUpdate(roomId)
+        } else {
+            availabilityRepository.findByRoomId(roomId)
+        }
+        val overlappingAvailability = roomAvailability
             .filter { it.range.overlaps(stay) }
         require(overlappingAvailability.isNotEmpty()) { missingMessage }
 

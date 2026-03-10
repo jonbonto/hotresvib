@@ -20,6 +20,11 @@ class InMemoryAvailabilityRepository : AvailabilityRepository {
             storage[roomId]?.toList().orEmpty()
         }
 
+    override fun findByRoomIdForUpdate(roomId: RoomId): List<Availability> =
+        synchronized(lock) {
+            storage[roomId]?.toList().orEmpty()
+        }
+
     override fun save(availability: Availability): Availability {
         synchronized(lock) {
             storage.compute(availability.roomId) { _, existing ->
