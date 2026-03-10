@@ -1,15 +1,15 @@
 package com.hotresvib.infrastructure.persistence.jpa.converters
 
-import com.hotresvib.domain.availability.AvailableQuantity
 import com.hotresvib.domain.availability.AvailabilityId
+import com.hotresvib.domain.availability.BlockoutReason
 import java.util.UUID
 import jakarta.persistence.AttributeConverter
 import jakarta.persistence.Converter
 
 @Converter(autoApply = true)
-class AvailableQuantityConverter : AttributeConverter<AvailableQuantity, Int> {
-    override fun convertToDatabaseColumn(attribute: AvailableQuantity?): Int? = attribute?.value
-    override fun convertToEntityAttribute(dbData: Int?): AvailableQuantity? = dbData?.let { AvailableQuantity(it) }
+class BlockoutReasonConverter : AttributeConverter<BlockoutReason, String> {
+    override fun convertToDatabaseColumn(attribute: BlockoutReason?): String? = attribute?.value
+    override fun convertToEntityAttribute(dbData: String?): BlockoutReason? = dbData?.let { BlockoutReason(it) }
 }
 
 @Converter(autoApply = true)

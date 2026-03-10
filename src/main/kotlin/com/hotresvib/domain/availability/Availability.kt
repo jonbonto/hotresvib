@@ -3,7 +3,6 @@ package com.hotresvib.domain.availability
 import com.hotresvib.domain.shared.DateRange
 import com.hotresvib.domain.shared.RoomId
 import java.util.UUID
-import java.time.LocalDate
 import jakarta.persistence.*
 
 @JvmInline
@@ -14,9 +13,9 @@ value class AvailabilityId(val value: UUID) {
 }
 
 @JvmInline
-value class AvailableQuantity(val value: Int) {
+value class BlockoutReason(val value: String) {
     init {
-        require(value >= 0) { "Available quantity must be non-negative" }
+        require(value.isNotBlank()) { "Blockout reason must not be blank" }
     }
 }
 
@@ -31,8 +30,8 @@ data class Availability(
     @Embedded
     val range: DateRange,
 
-    @Column(name = "available", nullable = false)
-    val available: AvailableQuantity,
+    @Column(name = "reason", nullable = false)
+    val reason: BlockoutReason,
     
     // Phase 11: Optimistic locking
     @Version

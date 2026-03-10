@@ -157,7 +157,7 @@ WHERE r.roomId = :roomId
 
 ---
 
-### M3-2 · Rewrite `AvailabilityApplicationService.checkAvailability()` 🟡 IN PROGRESS
+### M3-2 · Rewrite `AvailabilityApplicationService.checkAvailability()` ✅ DONE (2026-03-11)
 **Task:** Replace the inventory-counter check with a call to `reservationRepository.hasConflict()`.
 Conflict statuses: `CONFIRMED`, `PENDING_PAYMENT`.
 An optional secondary check against the `Availability` table for admin block-out dates can remain.
@@ -165,11 +165,11 @@ An optional secondary check against the `Availability` table for admin block-out
 - Room with an overlapping CONFIRMED reservation → `available: false`.
 - Room with only a DRAFT reservation → `available: true` (DRAFTs do not block new bookings).
 - Room with no reservations and no block-out → `available: true`.
-**Status:** Conflict-based reservation gate implemented (blocks `CONFIRMED` and `PENDING_PAYMENT` overlaps). Inventory fallback remains mandatory for now, so the no-reservation/no-block-out case still depends on availability rows.
+**Status:** Implemented in `AvailabilityApplicationService`: conflict check via `ReservationRepository.hasConflict(...)` first, then inventory fallback, and empty availability rows now return `true` (treated as no block-out).
 
 ---
 
-### M3-3 · Repurpose `Availability` table as "block-out" only
+### M3-3 · Repurpose `Availability` table as "block-out" only ✅ DONE (2026-03-11)
 **Task:**  
 - Rename domain concept: `Availability` → `BlockedPeriod` (or keep name, change semantics).
 - Remove `available: Int` column; replace with `reason: String` (MAINTENANCE, OWNER_USE, etc.).
@@ -177,18 +177,20 @@ An optional secondary check against the `Availability` table for admin block-out
 - Update all references.
 **Acceptance:** Admin can create/delete blocked periods; a blocked period prevents bookings regardless
 of the reservation table.
+**Status:** Main semantics switched to blockout mode (`Availability.reason`), converters updated, and DB migrations added: `V12__phase13_availability_blockout.sql` + `V12__phase13_availability_blockout_h2.sql`.
 
 ---
 
-### M3-4 · Remove all inventory increment/decrement code
+### M3-4 · Remove all inventory increment/decrement code ✅ DONE (2026-03-11)
 **Task:** Delete the sections in `createReservation()`, `cancelReservation()`, `expireReservation()`
 that read and write `available` counts.
 **Acceptance:** No code references `AvailableQuantity`; compilation passes; `available` column
 removed or repurposed in schema.
+**Status:** Inventory decrement/increment paths removed from `ReservationApplicationService`; availability is now determined by reservation conflicts + overlapping blockouts.
 
 ---
 
-### M3-5 · Add database-level unique constraint for active reservations
+### M3-5 · Add database-level unique constraint for active reservations ✅ DONE (2026-03-11)
 **Task:** Add a partial unique index to prevent double-booking at the DB level as a safety net:
 ```sql
 -- conceptual; enforce via application-level check + optimistic locking is sufficient,
@@ -198,6 +200,7 @@ For PostgreSQL: add an EXCLUDE USING GIST constraint on `(room_id, daterange(sta
 For H2 (demo): rely on the application-level `hasConflict()` check.
 **Acceptance:** Attempting to INSERT two overlapping CONFIRMED reservations for the same room at the
 SQL level raises a constraint violation.
+**Status:** Implemented in PostgreSQL migration `V13__phase13_reservation_overlap_constraint.sql`; H2 fallback documented via `V13__phase13_reservation_overlap_constraint_h2.sql` and application-level conflict checks.
 
 ---
 

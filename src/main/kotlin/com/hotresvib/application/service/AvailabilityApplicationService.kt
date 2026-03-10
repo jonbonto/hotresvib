@@ -21,12 +21,9 @@ class AvailabilityApplicationService(
             return false
         }
 
-        val availabilities = availabilityRepository.findByRoomId(roomId)
+        val overlappingBlockouts = availabilityRepository.findByRoomId(roomId)
             .filter { it.range.overlaps(range) }
-        if (availabilities.isEmpty()) {
-            return false
-        }
-        return availabilities.all { it.available.value > 0 }
+        return overlappingBlockouts.isEmpty()
     }
 
     fun updateAvailability(availability: Availability) {

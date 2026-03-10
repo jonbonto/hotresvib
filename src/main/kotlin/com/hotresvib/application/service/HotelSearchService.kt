@@ -1,10 +1,8 @@
 package com.hotresvib.application.service
 
 import com.hotresvib.application.dto.*
-import com.hotresvib.application.port.AvailabilityRepository
 import com.hotresvib.application.port.HotelRepository
 import com.hotresvib.application.port.RoomRepository
-import com.hotresvib.domain.shared.DateRange
 import com.hotresvib.domain.shared.HotelId
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -19,7 +17,7 @@ import java.time.temporal.ChronoUnit
 class HotelSearchService(
     private val hotelRepository: HotelRepository,
     private val roomRepository: RoomRepository,
-    private val availabilityRepository: AvailabilityRepository,
+    private val availabilityService: AvailabilityApplicationService,
     private val priceCalculationService: PriceCalculationService
 ) {
     /**
@@ -63,7 +61,7 @@ class HotelSearchService(
                 ?: throw IllegalStateException("Hotel not found for room: ${room.id}")
             
             val isAvailable = if (criteria.available == true && criteria.checkIn != null && criteria.checkOut != null) {
-                checkRoomAvailability(room.id, criteria.checkIn!!, criteria.checkOut!!)
+                checkRoomAvailability(room.id, criteria.checkIn, criteria.checkOut)
             } else {
                 null
             }
@@ -202,9 +200,6 @@ class HotelSearchService(
      * Check if a room is available for the given date range
      */
     private fun checkRoomAvailability(roomId: com.hotresvib.domain.shared.RoomId, checkIn: java.time.LocalDate, checkOut: java.time.LocalDate): Boolean {
-        val availabilities = availabilityRepository.findByRoomIdAndDateRange(roomId, checkIn, checkOut)
-        
-        // Room is available if we have an availability record with available.value > 0
-        return availabilities.any { it.available.value > 0 }
+        return availabilityService.checkAvailability(roomId, checkIn, checkOut)
     }
 }

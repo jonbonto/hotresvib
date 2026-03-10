@@ -1,0 +1,2 @@
+-- Phase 13 (H2): H2 does not support PostgreSQL EXCLUDE constraints.
+-- Overlap protection for active reservations remains enforced at application-service level.

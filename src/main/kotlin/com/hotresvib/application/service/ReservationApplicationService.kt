@@ -5,8 +5,6 @@ import com.hotresvib.application.port.PaymentRepository
 import com.hotresvib.application.port.PricingRuleRepository
 import com.hotresvib.application.port.ReservationRepository
 import com.hotresvib.application.port.RoomRepository
-import com.hotresvib.domain.availability.Availability
-import com.hotresvib.domain.availability.AvailableQuantity
 import com.hotresvib.domain.payment.PaymentStatus
 import com.hotresvib.domain.pricing.PricingRule
 import com.hotresvib.domain.reservation.Reservation
@@ -61,7 +59,15 @@ class ReservationApplicationService(
         }
 
         val room = roomRepository.findById(roomId) ?: throw IllegalArgumentException("Room not found")
-        updateAvailabilityForStay(roomId, stay, delta = -1, lockForUpdate = true)
+        val activeBlockingStatuses = setOf(ReservationStatus.CONFIRMED, ReservationStatus.PENDING_PAYMENT)
+        if (reservationRepository.hasConflict(roomId, stay, activeBlockingStatuses)) {
+            throw IllegalArgumentException("No availability for the selected dates")
+        }
+        val overlappingBlockouts = availabilityRepository.findByRoomId(roomId)
+            .filter { it.range.overlaps(stay) }
+        if (overlappingBlockouts.isNotEmpty()) {
+            throw IllegalArgumentException("No availability for the selected dates")
+        }
 
         val applicableRate = pricingRuleRepository.findByRoomId(roomId)
             .filter { it.range.overlaps(stay) }
@@ -119,7 +125,6 @@ class ReservationApplicationService(
             ?: throw IllegalArgumentException("Reservation not found: $reservationId")
 
         validateStateTransition(reservation.status, ReservationStatus.EXPIRED)
-        updateAvailabilityForStay(reservation.roomId, reservation.stay, delta = 1)
 
         return reservationRepository.save(reservation.copy(status = ReservationStatus.EXPIRED))
     }
@@ -130,7 +135,6 @@ class ReservationApplicationService(
             ?: throw IllegalArgumentException("Reservation not found")
 
         validateStateTransition(reservation.status, ReservationStatus.CANCELLED)
-        updateAvailabilityForStay(reservation.roomId, reservation.stay, delta = 1)
 
         return reservationRepository.save(reservation.copy(status = ReservationStatus.CANCELLED))
     }
@@ -173,57 +177,4 @@ class ReservationApplicationService(
         }
     }
 
-    private fun updateAvailabilityForStay(roomId: RoomId, stay: DateRange, delta: Int, lockForUpdate: Boolean = false) {
-        val availabilityByDate = availabilityByDate(roomId, stay, lockForUpdate = lockForUpdate)
-
-        val coveringAvailability = mutableSetOf<Availability>()
-        var cursor = stay.startDate
-        while (cursor.isBefore(stay.endDate)) {
-            val match = availabilityByDate[cursor]
-            require(match != null) { "No availability for the selected dates" }
-            if (delta < 0) {
-                require(match.available.value > 0) { "No availability for the selected dates" }
-            }
-            coveringAvailability.add(match)
-            cursor = cursor.plusDays(1)
-        }
-
-        coveringAvailability.forEach { availability ->
-            val updatedQuantity = availability.available.value + delta
-            require(updatedQuantity >= 0) { "Available quantity must be non-negative" }
-            availabilityRepository.save(
-                availability.copy(available = AvailableQuantity(updatedQuantity))
-            )
-        }
-    }
-
-    private fun availabilityByDate(
-        roomId: RoomId,
-        stay: DateRange,
-        missingMessage: String = "No availability for the selected dates",
-        lockForUpdate: Boolean = false
-    ): Map<LocalDate, Availability> {
-        val roomAvailability = if (lockForUpdate) {
-            availabilityRepository.findByRoomIdForUpdate(roomId)
-        } else {
-            availabilityRepository.findByRoomId(roomId)
-        }
-
-        val overlappingAvailability = roomAvailability.filter { it.range.overlaps(stay) }
-        require(overlappingAvailability.isNotEmpty()) { missingMessage }
-
-        return overlappingAvailability
-            .flatMap { availability ->
-                generateSequence(availability.range.startDate) { current ->
-                    val next = current.plusDays(1)
-                    if (next.isBefore(availability.range.endDate)) next else null
-                }
-                    .map { it to availability }
-            }
-            .groupBy({ it.first }, { it.second })
-            .mapValues { entry ->
-                require(entry.value.distinct().size == 1) { "Availability ranges overlap for the same date" }
-                entry.value.first()
-            }
-    }
 }
