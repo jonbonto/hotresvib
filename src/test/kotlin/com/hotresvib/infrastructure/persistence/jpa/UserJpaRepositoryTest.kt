@@ -29,7 +29,7 @@ class UserJpaRepositoryTest : DatabaseIntegrationTestBase() {
 
         val saved = userRepository.save(user)
         
-        val found = userRepository.findById(saved.id).orElse(null)
+        val found = userRepository.findById(saved.id.value).orElse(null)
         
         assertNotNull(found)
         assertEquals(user.email.value, found.email.value)
@@ -96,11 +96,11 @@ class UserJpaRepositoryTest : DatabaseIntegrationTestBase() {
         )
 
         val saved = userRepository.save(user)
-        assertTrue(userRepository.existsById(saved.id))
+        assertTrue(userRepository.existsById(saved.id.value))
 
-        userRepository.deleteById(saved.id)
+        userRepository.deleteById(saved.id.value)
         
-        assertFalse(userRepository.existsById(saved.id))
+        assertFalse(userRepository.existsById(saved.id.value))
     }
 
     @Test

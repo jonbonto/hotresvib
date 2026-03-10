@@ -210,7 +210,7 @@ SQL level raises a constraint violation.
 
 ---
 
-### M4-1 · Implement per-night segment pricing in `PriceCalculationService`
+### M4-1 · Implement per-night segment pricing in `PriceCalculationService` ✅ DONE (2026-03-11)
 **File:** `PriceCalculationService.kt`
 **Task:** Walk each night of the stay; for each night pick the most specific applicable pricing rule
 (latest `startDate` wins); fall back to `room.baseRate`. Sum all nights.
@@ -225,28 +225,32 @@ while (cursor.isBefore(stay.endDate)) {
 ```
 **Acceptance:** A 6-night stay spanning two pricing rules produces the correct sum (tested with
 a unit test that covers a straddle scenario).
+**Status:** Implemented in `PriceCalculationService` with nightly iteration and latest-start-date rule selection; covered by `PriceCalculationServiceTest`.
 
 ---
 
-### M4-2 · Remove pricing logic from `ReservationService` / `ReservationApplicationService`
+### M4-2 · Remove pricing logic from `ReservationService` / `ReservationApplicationService` ✅ DONE (2026-03-11)
 **Task:** Delete the inline `applicableRate` calculation inside `createReservation()` and replace
 with a call to `PriceCalculationService.calculateTotalAmount(room, stay, rules)`.
 **Acceptance:** Exactly one place in the codebase computes `totalAmount`.
+**Status:** Implemented in `ReservationApplicationService.createReservation()` by delegating total pricing to `PriceCalculationService.calculateTotalAmount(...)`.
 
 ---
 
-### M4-3 · Ensure `check-availability` and `createReservation` use the same pricing path
+### M4-3 · Ensure `check-availability` and `createReservation` use the same pricing path ✅ DONE (2026-03-11)
 **Task:** Both `ReservationController.checkAvailability()` and
 `ReservationApplicationService.createReservation()` must call `PriceCalculationService`.
 **Acceptance:** The `totalPrice` returned by `check-availability` equals the `totalPrice` on the
 subsequently created reservation for the same room and dates.
+**Status:** Both endpoints now use `PriceCalculationService`; parity validated by end-to-end integration test.
 
 ---
 
-### M4-4 · Add integration test: price consistency end-to-end
+### M4-4 · Add integration test: price consistency end-to-end ✅ DONE (2026-03-11)
 **Task:** Test that calls `check-availability` then `POST /api/reservations` and asserts both
 prices are equal.
 **Acceptance:** Green in CI.
+**Status:** Implemented via `ReservationPricingConsistencyIntegrationTest` (`check-availability` price == created reservation price).
 
 ---
 
@@ -262,6 +266,15 @@ prices are equal.
 | M5-5 | Integration test: concurrent `createReservation()` results in exactly one success |
 | M5-6 | Unit test: per-night pricing for stay straddling two pricing rules |
 | M5-7 | Integration test: `check-availability` price == created reservation price |
+
+**Status update (2026-03-11):**
+- M5-1 ✅ Covered by `AvailabilityServiceTest` (`checkAvailability` returns `true` with no blockouts/conflicts).
+- M5-2 ✅ Covered by `ReservationConflictRepositoryTest` (overlap, boundary-touch, and status-exclusion cases for `hasConflict`).
+- M5-3 ✅ Covered by `ReservationServiceTest` (`cancelReservation` removes active conflict blocking via status transition).
+- M5-4 ✅ Covered by `ReservationServiceTest` + `ReservationLifecycleServiceIntegrationTest` (`expireReservation` transition and no active conflict blocking).
+- M5-5 ✅ ADAPTED to post-M3 semantics: because `DRAFT` no longer blocks, concurrency is enforced at active blocking stage; covered by `ReservationConcurrencyIntegrationTest` (concurrent `initiatePayment` allows exactly one success).
+- M5-6 ✅ Covered by `PriceCalculationServiceTest` (multi-rule straddle total).
+- M5-7 ✅ Covered by `ReservationPricingConsistencyIntegrationTest`.
 
 ---
 

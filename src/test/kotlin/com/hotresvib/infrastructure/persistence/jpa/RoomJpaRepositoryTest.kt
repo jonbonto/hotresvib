@@ -52,7 +52,7 @@ class RoomJpaRepositoryTest : DatabaseIntegrationTestBase() {
 
         val saved = roomRepository.save(room)
         
-        val found = roomRepository.findById(saved.id).orElse(null)
+        val found = roomRepository.findById(saved.id.value).orElse(null)
         
         assertNotNull(found)
         assertEquals(room.number.value, found.number.value)
@@ -125,10 +125,10 @@ class RoomJpaRepositoryTest : DatabaseIntegrationTestBase() {
         )
 
         val saved = roomRepository.save(room)
-        assertTrue(roomRepository.existsById(saved.id))
+        assertTrue(roomRepository.existsById(saved.id.value))
 
-        roomRepository.deleteById(saved.id)
+        roomRepository.deleteById(saved.id.value)
         
-        assertFalse(roomRepository.existsById(saved.id))
+        assertFalse(roomRepository.existsById(saved.id.value))
     }
 }

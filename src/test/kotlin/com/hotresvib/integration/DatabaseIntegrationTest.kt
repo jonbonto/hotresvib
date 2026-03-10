@@ -60,7 +60,7 @@ class DatabaseIntegrationTest : DatabaseIntegrationTestBase() {
             passwordHash = "hashed_password"
         )
         val savedUser = userRepository.save(user)
-        assertNotNull(userRepository.findById(savedUser.id).orElse(null))
+        assertNotNull(userRepository.findById(savedUser.id.value).orElse(null))
 
         // 2. Create hotel
         val hotel = Hotel(
@@ -70,7 +70,7 @@ class DatabaseIntegrationTest : DatabaseIntegrationTestBase() {
             country = "USA"
         )
         val savedHotel = hotelRepository.save(hotel)
-        assertNotNull(hotelRepository.findById(savedHotel.id).orElse(null))
+        assertNotNull(hotelRepository.findById(savedHotel.id.value).orElse(null))
 
         // 3. Create room
         val room = Room(
@@ -81,17 +81,17 @@ class DatabaseIntegrationTest : DatabaseIntegrationTestBase() {
             baseRate = Money(BigDecimal("250.00"), "USD")
         )
         val savedRoom = roomRepository.save(room)
-        assertNotNull(roomRepository.findById(savedRoom.id).orElse(null))
+        assertNotNull(roomRepository.findById(savedRoom.id.value).orElse(null))
 
         // 4. Set availability
         val availability = com.hotresvib.domain.availability.Availability(
             id = com.hotresvib.domain.availability.AvailabilityId.generate(),
             roomId = savedRoom.id,
             range = DateRange(LocalDate.now().plusDays(1), LocalDate.now().plusDays(10)),
-            available = com.hotresvib.domain.availability.AvailableQuantity(5)
+            reason = com.hotresvib.domain.availability.BlockoutReason("OWNER_USE")
         )
         val savedAvailability = availabilityRepository.save(availability)
-        assertNotNull(availabilityRepository.findById(savedAvailability.id).orElse(null))
+        assertNotNull(availabilityRepository.findById(savedAvailability.id.value).orElse(null))
 
         // 5. Create reservation
         val reservation = Reservation(
@@ -104,7 +104,7 @@ class DatabaseIntegrationTest : DatabaseIntegrationTestBase() {
             createdAt = Instant.now()
         )
         val savedReservation = reservationRepository.save(reservation)
-        assertNotNull(reservationRepository.findById(savedReservation.id).orElse(null))
+        assertNotNull(reservationRepository.findById(savedReservation.id.value).orElse(null))
 
         // 6. Verify relationships
         val userReservations = reservationRepository.findByUserId(savedUser.id)
@@ -192,8 +192,8 @@ class DatabaseIntegrationTest : DatabaseIntegrationTestBase() {
         assertEquals(1, reservationRepository.findByUserId(user2.id).size)
 
         // Verify reservations exist
-        assertNotNull(reservationRepository.findById(reservation1.id).orElse(null))
-        assertNotNull(reservationRepository.findById(reservation2.id).orElse(null))
+        assertNotNull(reservationRepository.findById(reservation1.id.value).orElse(null))
+        assertNotNull(reservationRepository.findById(reservation2.id.value).orElse(null))
     }
 
     @Test
@@ -276,15 +276,15 @@ class DatabaseIntegrationTest : DatabaseIntegrationTestBase() {
         )
 
         // Verify all converters worked
-        val foundUser = userRepository.findById(userId).orElse(null)
+        val foundUser = userRepository.findById(userId.value).orElse(null)
         assertNotNull(foundUser)
         assertEquals(email.value, foundUser.email.value)
 
-        val foundHotel = hotelRepository.findById(hotelId).orElse(null)
+        val foundHotel = hotelRepository.findById(hotelId.value).orElse(null)
         assertNotNull(foundHotel)
         assertEquals(hotelName.value, foundHotel.name.value)
 
-        val foundRoom = roomRepository.findById(roomId).orElse(null)
+        val foundRoom = roomRepository.findById(roomId.value).orElse(null)
         assertNotNull(foundRoom)
         assertEquals(roomNumber.value, foundRoom.number.value)
     }

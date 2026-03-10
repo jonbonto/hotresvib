@@ -90,7 +90,7 @@ class ReservationJpaRepositoryTest : DatabaseIntegrationTestBase() {
 
         val saved = reservationRepository.save(reservation)
         
-        val found = reservationRepository.findById(saved.id).orElse(null)
+        val found = reservationRepository.findById(saved.id.value).orElse(null)
         
         assertNotNull(found)
         assertEquals(reservation.status, found.status)
@@ -115,7 +115,7 @@ class ReservationJpaRepositoryTest : DatabaseIntegrationTestBase() {
             roomId = testRoomId!!,
             stay = DateRange(LocalDate.now().plusDays(5), LocalDate.now().plusDays(7)),
             totalAmount = Money(BigDecimal("200.00"), "USD"),
-            status = ReservationStatus.PENDING,
+            status = ReservationStatus.PENDING_PAYMENT,
             createdAt = Instant.now()
         )
 
@@ -126,7 +126,7 @@ class ReservationJpaRepositoryTest : DatabaseIntegrationTestBase() {
         
         assertTrue(found.size >= 2)
         assertTrue(found.any { it.status == ReservationStatus.CONFIRMED })
-        assertTrue(found.any { it.status == ReservationStatus.PENDING })
+        assertTrue(found.any { it.status == ReservationStatus.PENDING_PAYMENT })
     }
 
     @Test
@@ -137,7 +137,7 @@ class ReservationJpaRepositoryTest : DatabaseIntegrationTestBase() {
             roomId = testRoomId!!,
             stay = DateRange(LocalDate.now().plusDays(1), LocalDate.now().plusDays(2)),
             totalAmount = Money(BigDecimal("100.00"), "USD"),
-            status = ReservationStatus.PENDING,
+            status = ReservationStatus.PENDING_PAYMENT,
             createdAt = Instant.now()
         )
 
@@ -154,7 +154,7 @@ class ReservationJpaRepositoryTest : DatabaseIntegrationTestBase() {
         val savedPending = reservationRepository.save(pending)
         val savedCancelled = reservationRepository.save(cancelled)
 
-        assertEquals(ReservationStatus.PENDING, savedPending.status)
+        assertEquals(ReservationStatus.PENDING_PAYMENT, savedPending.status)
         assertEquals(ReservationStatus.CANCELLED, savedCancelled.status)
     }
 
@@ -171,10 +171,10 @@ class ReservationJpaRepositoryTest : DatabaseIntegrationTestBase() {
         )
 
         val saved = reservationRepository.save(reservation)
-        assertTrue(reservationRepository.existsById(saved.id))
+        assertTrue(reservationRepository.existsById(saved.id.value))
 
-        reservationRepository.deleteById(saved.id)
+        reservationRepository.deleteById(saved.id.value)
         
-        assertFalse(reservationRepository.existsById(saved.id))
+        assertFalse(reservationRepository.existsById(saved.id.value))
     }
 }

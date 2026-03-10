@@ -1,16 +1,14 @@
 package com.hotresvib.security
 
 import com.hotresvib.domain.shared.DateRange
-import com.hotresvib.domain.shared.RoomId
 import com.hotresvib.domain.shared.UserId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.DisplayName
-import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
-import kotlin.test.assertFailsWith
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 
 /**
  * Tests for edge case handling (Phase 11).
@@ -25,7 +23,7 @@ class EdgeCasesTest {
         val tomorrow = LocalDate.now().plusDays(1)
         val stay = DateRange(yesterday, tomorrow)
         
-        val exception = assertFailsWith<IllegalArgumentException> {
+        val exception = assertThrows(IllegalArgumentException::class.java) {
             // Validate would happen in ReservationService
             require(!stay.startDate.isBefore(LocalDate.now())) { "Check-in date must be in the future" }
         }
@@ -47,7 +45,7 @@ class EdgeCasesTest {
         val today = LocalDate.now()
         val stay = DateRange(today, today)
         
-        val exception = assertFailsWith<IllegalArgumentException> {
+        val exception = assertThrows(IllegalArgumentException::class.java) {
             require(stay.startDate.isBefore(stay.endDate)) { "Stay must be at least one night" }
         }
         assertEquals("Stay must be at least one night", exception.message)
@@ -60,7 +58,7 @@ class EdgeCasesTest {
         val stay = DateRange(today, future)
         
         val nights = java.time.temporal.ChronoUnit.DAYS.between(stay.startDate, stay.endDate)
-        val exception = assertFailsWith<IllegalArgumentException> {
+        val exception = assertThrows(IllegalArgumentException::class.java) {
             require(nights <= 30) { "Maximum stay duration is 30 nights" }
         }
         assertEquals("Maximum stay duration is 30 nights", exception.message)
@@ -127,6 +125,7 @@ class EdgeCasesTest {
             paymentMethod = "STRIPE",
             transactionId = "txn_123",
             paymentIntentId = "pi_123",
+            metadata = null,
             idempotencyKey = "idempotency_key_123",
             createdAt = Instant.now()
         )
@@ -152,6 +151,6 @@ class EdgeCasesTest {
         val modifiedEntity = entity.copy(displayName = "Modified Name", version = 2L)
         
         // Version changed indicates concurrent modification
-        assert(entity.version != modifiedEntity.version)
+        assertNotEquals(entity.version, modifiedEntity.version)
     }
 }

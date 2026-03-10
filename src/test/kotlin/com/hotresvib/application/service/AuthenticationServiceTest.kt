@@ -3,11 +3,13 @@ package com.hotresvib.application.service
 import com.hotresvib.application.dto.*
 import com.hotresvib.application.port.RefreshTokenRepository
 import com.hotresvib.application.port.UserRepository
+import com.hotresvib.application.validation.PasswordValidator
 import com.hotresvib.domain.auth.RefreshToken
 import com.hotresvib.domain.user.EmailAddress
 import com.hotresvib.domain.user.User
 import com.hotresvib.domain.user.UserRole
 import com.hotresvib.domain.shared.UserId
+import com.hotresvib.infrastructure.audit.AuditLogService
 import com.hotresvib.infrastructure.security.JwtTokenProvider
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -23,6 +25,8 @@ class AuthenticationServiceTest {
     private lateinit var refreshTokenRepository: RefreshTokenRepository
     private lateinit var passwordHashingService: PasswordHashingService
     private lateinit var jwtTokenProvider: JwtTokenProvider
+    private lateinit var passwordValidator: PasswordValidator
+    private lateinit var auditLogService: AuditLogService
     private lateinit var authenticationService: AuthenticationService
 
     @BeforeEach
@@ -30,13 +34,17 @@ class AuthenticationServiceTest {
         userRepository = mock()
         refreshTokenRepository = mock()
         passwordHashingService = mock()
+        passwordValidator = PasswordValidator()
+        auditLogService = mock()
         // Use real JWT provider with test secret
         jwtTokenProvider = JwtTokenProvider("test-secret-key-minimum-32-bytes-for-hmac-sha256-algorithm")
         authenticationService = AuthenticationService(
             userRepository,
             refreshTokenRepository,
             passwordHashingService,
-            jwtTokenProvider
+            jwtTokenProvider,
+            passwordValidator,
+            auditLogService
         )
     }
 

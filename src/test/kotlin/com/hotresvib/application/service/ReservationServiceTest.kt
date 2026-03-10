@@ -189,4 +189,54 @@ class ReservationServiceTest {
         assertThat(reservationRepository.findById(reservation.id)?.status).isEqualTo(ReservationStatus.CANCELLED)
         assertThat(cancelled.totalAmount.amount).isEqualByComparingTo(BigDecimal("220.00"))
     }
+
+    @Test
+    fun `cancelled reservation no longer blocks availability conflict checks`() {
+        val roomId = RoomId.generate()
+        roomRepository.save(
+            Room(
+                id = roomId,
+                hotelId = HotelId.generate(),
+                number = RoomNumber("105"),
+                type = RoomType.DOUBLE,
+                baseRate = Money.of("USD", BigDecimal("120.00"))
+            )
+        )
+
+        val stay = DateRange(LocalDate.of(2024, 6, 1), LocalDate.of(2024, 6, 4))
+        val reservation = service.createReservation(UserId.generate(), roomId, stay)
+        val pending = service.initiatePayment(reservation.id)
+
+        val activeStatuses = setOf(ReservationStatus.CONFIRMED, ReservationStatus.PENDING_PAYMENT)
+        assertThat(reservationRepository.hasConflict(roomId, stay, activeStatuses)).isTrue()
+
+        service.cancelReservation(pending.id)
+
+        assertThat(reservationRepository.hasConflict(roomId, stay, activeStatuses)).isFalse()
+    }
+
+    @Test
+    fun `expired reservation no longer blocks availability conflict checks`() {
+        val roomId = RoomId.generate()
+        roomRepository.save(
+            Room(
+                id = roomId,
+                hotelId = HotelId.generate(),
+                number = RoomNumber("106"),
+                type = RoomType.SINGLE,
+                baseRate = Money.of("USD", BigDecimal("90.00"))
+            )
+        )
+
+        val stay = DateRange(LocalDate.of(2024, 7, 10), LocalDate.of(2024, 7, 12))
+        val reservation = service.createReservation(UserId.generate(), roomId, stay)
+        val pending = service.initiatePayment(reservation.id)
+
+        val activeStatuses = setOf(ReservationStatus.CONFIRMED, ReservationStatus.PENDING_PAYMENT)
+        assertThat(reservationRepository.hasConflict(roomId, stay, activeStatuses)).isTrue()
+
+        service.expireReservation(pending.id)
+
+        assertThat(reservationRepository.hasConflict(roomId, stay, activeStatuses)).isFalse()
+    }
 }

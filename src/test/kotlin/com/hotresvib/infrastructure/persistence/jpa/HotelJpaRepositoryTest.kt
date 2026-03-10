@@ -27,7 +27,7 @@ class HotelJpaRepositoryTest : DatabaseIntegrationTestBase() {
 
         val saved = hotelRepository.save(hotel)
         
-        val found = hotelRepository.findById(saved.id).orElse(null)
+        val found = hotelRepository.findById(saved.id.value).orElse(null)
         
         assertNotNull(found)
         assertEquals(hotel.name.value, found.name.value)
@@ -71,11 +71,11 @@ class HotelJpaRepositoryTest : DatabaseIntegrationTestBase() {
         )
 
         val saved = hotelRepository.save(hotel)
-        assertTrue(hotelRepository.existsById(saved.id))
+        assertTrue(hotelRepository.existsById(saved.id.value))
 
-        hotelRepository.deleteById(saved.id)
+        hotelRepository.deleteById(saved.id.value)
         
-        assertFalse(hotelRepository.existsById(saved.id))
+        assertFalse(hotelRepository.existsById(saved.id.value))
     }
 
     @Test
