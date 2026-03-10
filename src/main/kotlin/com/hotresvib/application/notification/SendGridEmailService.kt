@@ -19,6 +19,7 @@ import java.math.BigDecimal
  * Service for sending emails via SendGrid
  */
 @Service
+@org.springframework.context.annotation.Profile("prod")
 class SendGridEmailService(
     @Value("\${sendgrid.api-key:}")
     private val sendGridApiKey: String,

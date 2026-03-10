@@ -103,7 +103,9 @@ springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
-    path: /swagger-ui.html
+    # expose the UI under `/swagger-ui` so that both `/swagger-ui` and
+    # `/swagger-ui/` work (the default previously was `/swagger-ui.html`).
+    path: /swagger-ui
     operations-sorter: alpha
     persist-authorization: true
 

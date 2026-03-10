@@ -134,7 +134,7 @@ tasks.withType<Test> {
 }
 
 // Configure JaCoCo report
-tasks.register<org.gradle.testing.jacoco.tasks.JacocoReport>("jacocoTestReport") {
+tasks.named<org.gradle.testing.jacoco.tasks.JacocoReport>("jacocoTestReport") {
     dependsOn(tasks.named("test"))
     reports {
         xml.required.set(true)
@@ -147,7 +147,7 @@ tasks.register<org.gradle.testing.jacoco.tasks.JacocoReport>("jacocoTestReport")
 }
 
 // Enforce minimum coverage
-tasks.register<org.gradle.testing.jacoco.tasks.JacocoCoverageVerification>("jacocoTestCoverageVerification") {
+tasks.named<org.gradle.testing.jacoco.tasks.JacocoCoverageVerification>("jacocoTestCoverageVerification") {
     dependsOn(tasks.named("test"))
     violationRules {
         rule {

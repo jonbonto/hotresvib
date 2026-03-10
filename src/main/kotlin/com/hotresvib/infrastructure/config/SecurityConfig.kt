@@ -53,7 +53,7 @@ class SecurityConfig(
                 it.requestMatchers("/api/search/**").permitAll()
                 it.requestMatchers("/api/reservations/check-availability").permitAll()
                 it.requestMatchers("/api/webhooks/**").permitAll()
-                it.requestMatchers("/swagger-ui/**").permitAll()
+                it.requestMatchers("/swagger-ui/**","/swagger-ui.html","/swagger-ui/index.html").permitAll()
                 it.requestMatchers("/v3/api-docs/**").permitAll()
                 it.anyRequest().authenticated()
             }

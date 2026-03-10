@@ -6,6 +6,7 @@ import com.hotresvib.domain.shared.ReservationId
 import com.hotresvib.domain.shared.RoomId
 import com.hotresvib.domain.shared.UserId
 import java.time.Instant
+import java.util.UUID
 import jakarta.persistence.*
 
 enum class ReservationStatus {

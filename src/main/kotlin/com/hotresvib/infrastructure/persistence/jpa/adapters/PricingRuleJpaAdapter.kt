@@ -19,7 +19,7 @@ class PricingRuleJpaAdapter(
     }
     
     override fun findById(id: PricingRuleId): PricingRule? {
-        return jpaRepository.findById(id).orElse(null)
+        return jpaRepository.findById(id.value).orElse(null)
     }
     
     override fun findByRoomId(roomId: RoomId): List<PricingRule> {

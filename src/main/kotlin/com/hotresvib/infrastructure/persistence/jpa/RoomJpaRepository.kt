@@ -2,7 +2,6 @@ package com.hotresvib.infrastructure.persistence.jpa
 
 import com.hotresvib.domain.hotel.Room
 import com.hotresvib.domain.hotel.RoomType
-import com.hotresvib.domain.shared.RoomId
 import com.hotresvib.domain.shared.HotelId
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -11,9 +10,10 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
+import java.util.UUID
 
 @Repository
-interface RoomJpaRepository : JpaRepository<Room, RoomId> {
+interface RoomJpaRepository : JpaRepository<Room, UUID> {
     fun findByHotelId(hotelId: HotelId): List<Room>
     fun findByType(type: RoomType, pageable: Pageable): Page<Room>
     

@@ -55,6 +55,7 @@ interface EmailService {
 }
 
 @Service
+@org.springframework.context.annotation.Profile("!prod") // active in dev/test (everything except prod)
 class EmailServiceImpl : EmailService {
     
     override fun sendEmail(emailRequest: EmailRequest): Boolean {

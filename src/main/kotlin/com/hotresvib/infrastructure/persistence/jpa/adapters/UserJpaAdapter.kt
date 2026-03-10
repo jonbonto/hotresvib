@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository
 @Repository
 @Primary
 class UserJpaAdapter(private val repo: UserJpaRepository) : UserRepository {
-    override fun findById(id: UserId): User? = repo.findById(id).orElse(null)
+    override fun findById(id: UserId): User? = repo.findById(id.value).orElse(null)
 
     override fun findByEmail(email: EmailAddress): User? = repo.findByEmail(email.value)
 
