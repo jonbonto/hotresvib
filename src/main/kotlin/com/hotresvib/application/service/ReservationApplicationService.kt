@@ -6,17 +6,14 @@ import com.hotresvib.application.port.PricingRuleRepository
 import com.hotresvib.application.port.ReservationRepository
 import com.hotresvib.application.port.RoomRepository
 import com.hotresvib.domain.payment.PaymentStatus
-import com.hotresvib.domain.pricing.PricingRule
 import com.hotresvib.domain.reservation.Reservation
 import com.hotresvib.domain.reservation.ReservationStatus
 import com.hotresvib.domain.shared.DateRange
-import com.hotresvib.domain.shared.Money
 import com.hotresvib.domain.shared.ReservationId
 import com.hotresvib.domain.shared.RoomId
 import com.hotresvib.domain.shared.UserId
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -29,6 +26,7 @@ class ReservationApplicationService(
     private val reservationRepository: ReservationRepository,
     private val roomRepository: RoomRepository,
     private val pricingRuleRepository: PricingRuleRepository,
+    private val priceCalculationService: PriceCalculationService,
     private val availabilityRepository: AvailabilityRepository,
     private val paymentRepository: PaymentRepository,
     private val clock: Clock = Clock.systemUTC()
@@ -69,18 +67,8 @@ class ReservationApplicationService(
             throw IllegalArgumentException("No availability for the selected dates")
         }
 
-        val applicableRate = pricingRuleRepository.findByRoomId(roomId)
-            .filter { it.range.overlaps(stay) }
-            .minWithOrNull(
-                compareByDescending<PricingRule> { it.range.startDate }
-                    .thenBy { it.range.endDate }
-            )
-            ?.price ?: room.baseRate
-
-        val totalAmount = Money(
-            amount = applicableRate.amount.multiply(BigDecimal.valueOf(nights)),
-            currency = applicableRate.currency
-        )
+        val pricingRules = pricingRuleRepository.findByRoomId(roomId)
+        val totalAmount = priceCalculationService.calculateTotalAmount(room, stay, pricingRules)
 
         val reservation = Reservation(
             id = ReservationId.generate(),

@@ -1,15 +1,15 @@
 package com.hotresvib.application.service
 
-import com.hotresvib.application.port.AvailabilityRepository
 import com.hotresvib.application.port.PricingRuleRepository
 import com.hotresvib.application.port.RoomRepository
+import com.hotresvib.domain.hotel.Room
+import com.hotresvib.domain.pricing.PricingRule
 import com.hotresvib.domain.shared.DateRange
 import com.hotresvib.domain.shared.Money
 import com.hotresvib.domain.shared.RoomId
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 /**
  * Service for calculating room prices with pricing rules applied
@@ -17,8 +17,7 @@ import java.time.temporal.ChronoUnit
 @Service
 class PriceCalculationService(
     private val roomRepository: RoomRepository,
-    private val pricingRuleRepository: PricingRuleRepository,
-    private val availabilityRepository: AvailabilityRepository
+    private val pricingRuleRepository: PricingRuleRepository
 ) {
     /**
      * Calculate total price for a room stay
@@ -26,38 +25,17 @@ class PriceCalculationService(
     fun calculateTotalPrice(roomId: RoomId, checkIn: LocalDate, checkOut: LocalDate): Money {
         val room = roomRepository.findById(roomId)
             ?: throw IllegalArgumentException("Room not found: $roomId")
-        
-        val nights = ChronoUnit.DAYS.between(checkIn, checkOut).toInt()
-        require(nights > 0) { "Check-out must be after check-in" }
-        
-        // Start with base price for all nights
-        var totalAmount = room.baseRate.amount.multiply(BigDecimal.valueOf(nights.toLong()))
-        val currency = room.baseRate.currency
-        
-        val dateRange = DateRange(checkIn, checkOut)
-        
-        // Get all pricing rules for the room
         val pricingRules = pricingRuleRepository.findByRoomId(roomId)
-        
-        // Apply applicable pricing rules
-        for (rule in pricingRules) {
-            if (dateRange.overlaps(rule.range)) {
-                // Calculate overlap days
-                val overlapStart = maxOf(dateRange.startDate, rule.range.startDate)
-                val overlapEnd = minOf(dateRange.endDate, rule.range.endDate)
-                val overlapNights = ChronoUnit.DAYS.between(overlapStart, overlapEnd).toInt()
-                
-                if (overlapNights > 0) {
-                    // Apply the pricing rule's price for the overlapping days
-                    val rulePrice = rule.price.amount.multiply(BigDecimal.valueOf(overlapNights.toLong()))
-                    val basePrice = room.baseRate.amount.multiply(BigDecimal.valueOf(overlapNights.toLong()))
-                    val difference = rulePrice.subtract(basePrice)
-                    totalAmount = totalAmount.add(difference)
-                }
-            }
+        return calculateTotalAmount(room, DateRange(checkIn, checkOut), pricingRules)
+    }
+
+    fun calculateTotalAmount(room: Room, stay: DateRange, pricingRules: List<PricingRule>): Money {
+        val nightlyRates = resolveNightlyRates(room, stay, pricingRules)
+        val totalAmount = nightlyRates.fold(BigDecimal.ZERO) { total, nightlyRate ->
+            total.add(nightlyRate.price.amount)
         }
-        
-        return Money(totalAmount, currency)
+
+        return Money(totalAmount, room.baseRate.currency)
     }
     
     /**
@@ -66,42 +44,71 @@ class PriceCalculationService(
     fun calculatePriceBreakdown(roomId: RoomId, checkIn: LocalDate, checkOut: LocalDate): PriceBreakdownDetails {
         val room = roomRepository.findById(roomId)
             ?: throw IllegalArgumentException("Room not found: $roomId")
-        
-        val nights = ChronoUnit.DAYS.between(checkIn, checkOut).toInt()
         val dateRange = DateRange(checkIn, checkOut)
         val pricingRules = pricingRuleRepository.findByRoomId(roomId)
-        
-        val appliedRules = mutableListOf<String>()
-        var totalAmount = room.baseRate.amount.multiply(BigDecimal.valueOf(nights.toLong()))
-        val subtotalAmount = totalAmount
-        val currency = room.baseRate.currency
-        
-        for (rule in pricingRules) {
-            if (dateRange.overlaps(rule.range)) {
-                val overlapStart = maxOf(dateRange.startDate, rule.range.startDate)
-                val overlapEnd = minOf(dateRange.endDate, rule.range.endDate)
-                val overlapNights = ChronoUnit.DAYS.between(overlapStart, overlapEnd).toInt()
-                
-                if (overlapNights > 0) {
-                    val rulePrice = rule.price.amount.multiply(BigDecimal.valueOf(overlapNights.toLong()))
-                    val basePrice = room.baseRate.amount.multiply(BigDecimal.valueOf(overlapNights.toLong()))
-                    val difference = rulePrice.subtract(basePrice)
-                    totalAmount = totalAmount.add(difference)
-                    
-                    appliedRules.add("${rule.range.startDate} to ${rule.range.endDate}: ${rule.price.amount} ${rule.price.currency}")
-                }
-            }
+        val nightlyRates = resolveNightlyRates(room, dateRange, pricingRules)
+        val subtotalAmount = room.baseRate.amount.multiply(BigDecimal.valueOf(dateRange.nights.toLong()))
+        val totalAmount = nightlyRates.fold(BigDecimal.ZERO) { total, nightlyRate ->
+            total.add(nightlyRate.price.amount)
         }
+        val appliedRules = nightlyRates
+            .groupBy { it.source?.id }
+            .values
+            .mapNotNull { ratesForRule ->
+                val sourceRule = ratesForRule.first().source ?: return@mapNotNull null
+                val appliedStart = ratesForRule.first().date
+                val appliedEnd = ratesForRule.last().date.plusDays(1)
+                val descriptionSuffix = sourceRule.description?.let { " ($it)" } ?: ""
+                "$appliedStart to $appliedEnd: ${sourceRule.price.amount} ${sourceRule.price.currency}$descriptionSuffix"
+            }
         
         return PriceBreakdownDetails(
             basePrice = room.baseRate,
-            nights = nights,
-            subtotal = Money(subtotalAmount, currency),
+            nights = dateRange.nights,
+            subtotal = Money(subtotalAmount, room.baseRate.currency),
             pricingRulesApplied = appliedRules,
-            total = Money(totalAmount, currency)
+            total = Money(totalAmount, room.baseRate.currency)
         )
     }
+
+    private fun resolveNightlyRates(room: Room, stay: DateRange, pricingRules: List<PricingRule>): List<NightlyRate> {
+        require(stay.startDate.isBefore(stay.endDate)) { "Check-out must be after check-in" }
+
+        val nightlyRates = mutableListOf<NightlyRate>()
+        var cursor = stay.startDate
+
+        while (cursor.isBefore(stay.endDate)) {
+            val nightlyStay = DateRange(cursor, cursor.plusDays(1))
+            val applicableRule = pricingRules
+                .filter { it.range.overlaps(nightlyStay) }
+                .maxWithOrNull(
+                    compareBy<PricingRule> { it.range.startDate }
+                        .thenBy { it.range.endDate }
+                )
+
+            applicableRule?.let {
+                require(it.price.currency == room.baseRate.currency) {
+                    "Pricing rule currency must match room base rate currency"
+                }
+            }
+
+            nightlyRates += NightlyRate(
+                date = cursor,
+                price = applicableRule?.price ?: room.baseRate,
+                source = applicableRule
+            )
+            cursor = cursor.plusDays(1)
+        }
+
+        return nightlyRates
+    }
 }
+
+private data class NightlyRate(
+    val date: LocalDate,
+    val price: Money,
+    val source: PricingRule?
+)
 
 /**
  * Price breakdown details

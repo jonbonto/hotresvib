@@ -255,7 +255,7 @@ prices are equal.
 
 | Task | Scope |
 |------|-------|
-| M5-1 | Unit test: `checkAvailability()` with empty availability list returns `false` |
+| M5-1 | Unit test: `checkAvailability()` with empty availability list returns `true` |
 | M5-2 | Unit test: `hasConflict()` — overlap, boundary, no-overlap cases |
 | M5-3 | Unit test: `cancelReservation()` restores inventory (or unblocks via reservation status) |
 | M5-4 | Unit test: `expireReservation()` restores inventory |

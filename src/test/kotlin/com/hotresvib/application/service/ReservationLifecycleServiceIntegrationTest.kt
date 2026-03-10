@@ -2,7 +2,7 @@ package com.hotresvib.application.service
 
 import com.hotresvib.domain.availability.Availability
 import com.hotresvib.domain.availability.AvailabilityId
-import com.hotresvib.domain.availability.AvailableQuantity
+import com.hotresvib.domain.availability.BlockoutReason
 import com.hotresvib.domain.reservation.ReservationStatus
 import com.hotresvib.domain.shared.*
 import com.hotresvib.domain.user.EmailAddress
@@ -83,13 +83,13 @@ class ReservationLifecycleServiceIntegrationTest : DatabaseIntegrationTestBase()
         roomRepository.save(room)
         testRoomId = room.id
 
-        val availability = Availability(
+        val blockout = Availability(
             id = AvailabilityId(UUID.randomUUID()),
             roomId = room.id,
-            range = DateRange(LocalDate.now().plusDays(1), LocalDate.now().plusDays(10)),
-            available = AvailableQuantity(2)
+            range = DateRange(LocalDate.now().plusDays(10), LocalDate.now().plusDays(11)),
+            reason = BlockoutReason("MAINTENANCE")
         )
-        availabilityRepository.save(availability)
+        availabilityRepository.save(blockout)
     }
 
     @Test
