@@ -108,6 +108,9 @@ springdoc:
     path: /swagger-ui
     operations-sorter: alpha
     persist-authorization: true
+    doc-expansion: list
+  show-actuator: false
+  enable-native-json-p: true
 
 reservation:
   payment-timeout-minutes: 30

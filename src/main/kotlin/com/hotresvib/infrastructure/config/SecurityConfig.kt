@@ -28,15 +28,16 @@ class SecurityConfig(
             // Phase 11: Enable CSRF protection for state-changing operations
             .csrf { csrf ->
                 csrf.csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
-                // Disable CSRF for stateless API endpoints (JWT protected)
-                csrf.ignoringRequestMatchers("/api/auth/**", "/api/webhooks/**", "/api/reservations/**")
+                // Disable CSRF for stateless API endpoints (JWT protected) and H2 console forms
+                csrf.ignoringRequestMatchers("/api/auth/**", "/api/webhooks/**", "/api/reservations/**", "/h2-console/**")
             }
             .cors { it.configurationSource(corsConfigurationSource()) }
             // Phase 11: Stateless session management
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             // Phase 11: Security headers
             .headers { headers ->
-                headers.frameOptions { it.deny() }
+                // allow frames from same origin for H2 console
+                headers.frameOptions { it.sameOrigin() }
                 headers.xssProtection()
                 headers.contentSecurityPolicy { csp ->
                     csp.policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;")
@@ -55,6 +56,7 @@ class SecurityConfig(
                 it.requestMatchers("/api/webhooks/**").permitAll()
                 it.requestMatchers("/swagger-ui/**","/swagger-ui.html","/swagger-ui/index.html").permitAll()
                 it.requestMatchers("/v3/api-docs/**").permitAll()
+                it.requestMatchers("/h2-console/**").permitAll()
                 it.anyRequest().authenticated()
             }
             // Phase 11: Add security filters

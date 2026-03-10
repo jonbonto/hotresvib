@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController
  * initialize.
  */
 @RestController
+@org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
 class SwaggerConfigController {
 
     @GetMapping("/v3/api-docs/swagger-config")

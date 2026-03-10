@@ -21,6 +21,7 @@ import java.util.UUID
 class ReservationController(
     private val reservationService: ReservationService,
     private val availabilityService: AvailabilityApplicationService,
+    private val priceCalculationService: com.hotresvib.application.service.PriceCalculationService,
     private val reservationRepository: ReservationRepository,
     private val roomRepository: RoomRepository
 ) {
@@ -28,12 +29,33 @@ class ReservationController(
     @PostMapping("/check-availability")
     fun checkAvailability(@RequestBody request: CheckAvailabilityRequest): ResponseEntity<CheckAvailabilityResponse> {
         return try {
+            // validate that the room actually exists before checking availability
+            val roomExists = roomRepository.findById(RoomId(request.roomId)) != null
+            if (!roomExists) {
+                // treat non‑existent room as unavailable (could also return 400/404)
+                return ResponseEntity.ok(
+                    CheckAvailabilityResponse(
+                        available = false,
+                        roomId = request.roomId,
+                        startDate = request.startDate,
+                        endDate = request.endDate,
+                        totalPrice = 0.0
+                    )
+                )
+            }
+
             val available = availabilityService.checkAvailability(
                 RoomId(request.roomId),
                 request.startDate,
                 request.endDate
             )
-            val totalPrice = if (available) 250.0 else 0.0 // Simplified calculation
+            val totalPrice = if (available) {
+                // calculate using priceCalc service
+                val price = priceCalculationService.calculateTotalPrice(
+                    RoomId(request.roomId), request.startDate, request.endDate
+                )
+                price.amount.toDouble()
+            } else 0.0
             ResponseEntity.ok(CheckAvailabilityResponse(
                 available = available,
                 roomId = request.roomId,
