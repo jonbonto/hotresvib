@@ -3,9 +3,11 @@ package com.hotresvib.application.web
 import io.swagger.v3.oas.annotations.Hidden
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.WebRequest
+import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
 
 data class ErrorResponse(
@@ -16,8 +18,39 @@ data class ErrorResponse(
 )
 
 @RestControllerAdvice
-@Hidden
 class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResponseStatusException::class)
+    fun handleResponseStatusException(
+        ex: ResponseStatusException,
+        request: WebRequest
+    ): ResponseEntity<ErrorResponse> {
+        val statusCode = ex.statusCode.value()
+        val status = HttpStatus.valueOf(statusCode)
+        val errorResponse = ErrorResponse(
+            message = ex.reason ?: status.reasonPhrase,
+            status = statusCode,
+            timestamp = Instant.now(),
+            path = request.getDescription(false)
+        )
+        return ResponseEntity.status(status).body(errorResponse)
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleValidationException(
+        ex: MethodArgumentNotValidException,
+        request: WebRequest
+    ): ResponseEntity<ErrorResponse> {
+        val firstMessage = ex.bindingResult.fieldErrors.firstOrNull()?.defaultMessage
+            ?: "Validation failed"
+        val errorResponse = ErrorResponse(
+            message = firstMessage,
+            status = HttpStatus.BAD_REQUEST.value(),
+            timestamp = Instant.now(),
+            path = request.getDescription(false)
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+    }
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(

@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 @RestController
@@ -64,7 +65,7 @@ class ReservationController(
                 totalPrice = totalPrice
             ))
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to check availability")
         }
     }
 
@@ -75,7 +76,11 @@ class ReservationController(
         authentication: Authentication
     ): ResponseEntity<ReservationResponse> {
         return try {
-            val userId = UserId(UUID.fromString(authentication.principal as String))
+            val userId = try {
+                UserId(UUID.fromString(authentication.principal as String))
+            } catch (e: IllegalArgumentException) {
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID")
+            }
             val roomId = RoomId(request.roomId)
             val dateRange = DateRange(request.checkInDate, request.checkOutDate)
 
@@ -92,9 +97,11 @@ class ReservationController(
                 createdAt = reservation.createdAt.toString()
             ))
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message ?: "Invalid request")
+        } catch (e: ResponseStatusException) {
+            throw e
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create reservation")
         }
     }
 
@@ -105,13 +112,17 @@ class ReservationController(
         authentication: Authentication
     ): ResponseEntity<ReservationResponse> {
         return try {
-            val userId = UUID.fromString(authentication.principal as String)
+            val userId = try {
+                UUID.fromString(authentication.principal as String)
+            } catch (e: IllegalArgumentException) {
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID")
+            }
             val reservation = reservationRepository.findById(ReservationId(id))
-                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation not found")
 
             // Check authorization
             if (reservation.userId.value != userId) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null)
+                throw ResponseStatusException(HttpStatus.FORBIDDEN, "No permission to access this reservation")
             }
 
             ResponseEntity.ok(ReservationResponse(
@@ -124,15 +135,21 @@ class ReservationController(
                 status = reservation.status.toString(),
                 createdAt = reservation.createdAt.toString()
             ))
+        } catch (e: ResponseStatusException) {
+            throw e
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve reservation")
         }
     }
 
     @GetMapping
     fun getUserReservations(authentication: Authentication): ResponseEntity<List<ReservationResponse>> {
         return try {
-            val userId = UUID.fromString(authentication.principal as String)
+            val userId = try {
+                UUID.fromString(authentication.principal as String)
+            } catch (e: IllegalArgumentException) {
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID")
+            }
             val reservations = reservationRepository.findByUserId(UserId(userId))
                 .map { reservation ->
                     ReservationResponse(
@@ -148,8 +165,10 @@ class ReservationController(
                 }
 
             ResponseEntity.ok(reservations)
+        } catch (e: ResponseStatusException) {
+            throw e
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(emptyList())
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve reservations")
         }
     }
 
@@ -159,13 +178,17 @@ class ReservationController(
         authentication: Authentication
     ): ResponseEntity<ReservationResponse> {
         return try {
-            val userId = UUID.fromString(authentication.principal as String)
+            val userId = try {
+                UUID.fromString(authentication.principal as String)
+            } catch (e: IllegalArgumentException) {
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID")
+            }
             val reservation = reservationRepository.findById(ReservationId(id))
-                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation not found")
 
             // Check authorization
             if (reservation.userId.value != userId) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null)
+                throw ResponseStatusException(HttpStatus.FORBIDDEN, "No permission to cancel this reservation")
             }
 
             val cancelled = reservationService.cancelReservation(reservation.id)
@@ -180,8 +203,10 @@ class ReservationController(
                 status = cancelled.status.toString(),
                 createdAt = cancelled.createdAt.toString()
             ))
+        } catch (e: ResponseStatusException) {
+            throw e
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to cancel reservation")
         }
     }
 }

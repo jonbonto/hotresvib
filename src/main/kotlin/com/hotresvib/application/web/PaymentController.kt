@@ -14,8 +14,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
 import java.util.UUID
+import org.springframework.security.access.prepost.PreAuthorize
 
 @RestController
 @RequestMapping("/api/payments")
@@ -34,16 +36,21 @@ class PaymentController(
     @PostMapping("/intent")
     fun createPaymentIntent(
         @RequestBody request: PaymentIntentRequest,
-        authentication: Authentication
+        authentication: Authentication?
     ): ResponseEntity<PaymentIntentResponse> {
         return try {
-            val userId = UUID.fromString(authentication.principal as String)
+            val auth = authentication ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required")
+            val userId = try {
+                java.util.UUID.fromString(auth.principal as String)
+            } catch (e: IllegalArgumentException) {
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID")
+            }
             val reservation = reservationRepository.findById(ReservationId(request.reservationId))
-                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation not found")
 
             // Check authorization
             if (reservation.userId.value != userId) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null)
+                throw ResponseStatusException(HttpStatus.FORBIDDEN, "No permission to access this reservation")
             }
 
             // Create Stripe payment intent
@@ -68,24 +75,32 @@ class PaymentController(
             reservationService.initiatePayment(reservation.id)
 
             ResponseEntity.ok(paymentIntentResponse)
+        } catch (e: ResponseStatusException) {
+            println("Error creating payment intent: ${e.message}")
+            throw e
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create payment intent")
         }
     }
 
     @PostMapping
     fun processPayment(
         @RequestBody request: PaymentRequest,
-        authentication: Authentication
+        authentication: Authentication?
     ): ResponseEntity<PaymentResponse> {
         return try {
-            val userId = UUID.fromString(authentication.principal as String)
+            val auth = authentication ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required")
+            val userId = try {
+                UUID.fromString(auth.principal as String)
+            } catch (e: IllegalArgumentException) {
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID")
+            }
             val reservation = reservationRepository.findById(ReservationId(request.reservationId))
-                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation not found")
 
             // Check authorization
             if (reservation.userId.value != userId) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null)
+                throw ResponseStatusException(HttpStatus.FORBIDDEN, "No permission to pay for this reservation")
             }
 
             val amount = Money(request.amount.toBigDecimal(), request.currency)
@@ -105,21 +120,28 @@ class PaymentController(
                 paymentMethod = payment.paymentMethod,
                 transactionId = payment.transactionId
             ))
+        } catch (e: ResponseStatusException) {
+            throw e
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process payment")
         }
     }
 
     @GetMapping("/{id}")
     fun getPayment(
         @PathVariable id: UUID,
-        authentication: Authentication
+        authentication: Authentication?
     ): ResponseEntity<PaymentResponse> {
         return try {
-            val userId = UUID.fromString(authentication.principal as String)
+            val auth = authentication ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required")
+            try {
+                UUID.fromString(auth.principal as String)
+            } catch (e: IllegalArgumentException) {
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID")
+            }
             
             val payment = paymentRepository.findById(id)
-                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Payment not found")
 
             // In a real implementation, verify authorization
             ResponseEntity.ok(PaymentResponse(
@@ -131,8 +153,10 @@ class PaymentController(
                 paymentMethod = payment.paymentMethod,
                 transactionId = payment.transactionId
             ))
+        } catch (e: ResponseStatusException) {
+            throw e
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve payment")
         }
     }
 }

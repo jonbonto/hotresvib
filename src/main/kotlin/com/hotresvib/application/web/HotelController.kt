@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 import java.math.BigDecimal
 
@@ -38,7 +39,7 @@ class HotelController(
             }
             ResponseEntity.ok(hotels)
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(emptyList())
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to list hotels")
         }
     }
 
@@ -47,7 +48,7 @@ class HotelController(
         return try {
             // Use a safe lookup by comparing raw UUID to avoid potential repository ID conversion issues
             val hotel = hotelRepository.findAll().find { it.id.value == id }
-                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Hotel not found")
 
             ResponseEntity.ok(HotelResponse(
                 id = hotel.id.value,
@@ -55,8 +56,10 @@ class HotelController(
                 city = hotel.city,
                 country = hotel.country
             ))
+        } catch (e: ResponseStatusException) {
+            throw e
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve hotel")
         }
     }
 
@@ -78,8 +81,10 @@ class HotelController(
                 city = hotel.city,
                 country = hotel.country
             ))
+        } catch (e: IllegalArgumentException) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message ?: "Invalid hotel data")
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create hotel")
         }
     }
 
@@ -100,7 +105,7 @@ class HotelController(
                 }
             ResponseEntity.ok(rooms)
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(emptyList())
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to list hotel rooms")
         }
     }
 
@@ -111,8 +116,8 @@ class HotelController(
         @RequestBody request: RoomRequest
     ): ResponseEntity<RoomResponse> {
         return try {
-            val hotel = hotelRepository.findById(HotelId(hotelId))
-                ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+            hotelRepository.findById(HotelId(hotelId))
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Hotel not found")
 
             val room = Room(
                 id = RoomId.generate(),
@@ -131,8 +136,12 @@ class HotelController(
                 basePrice = room.baseRate.amount.toDouble(),
                 currency = room.baseRate.currency
             ))
+        } catch (e: ResponseStatusException) {
+            throw e
+        } catch (e: IllegalArgumentException) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message ?: "Invalid room data")
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create room")
         }
     }
 }

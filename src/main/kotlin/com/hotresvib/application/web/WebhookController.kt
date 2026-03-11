@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 @RestController
@@ -41,7 +42,7 @@ class WebhookController(
             Webhook.constructEvent(payload, signature, webhookSecret)
         } catch (e: Exception) {
             logger.error("Invalid webhook signature: ${e.message}")
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid signature")
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature")
         }
         
         logger.info("Webhook event type: ${event.type}")

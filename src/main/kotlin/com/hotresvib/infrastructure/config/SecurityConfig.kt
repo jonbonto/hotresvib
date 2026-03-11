@@ -29,7 +29,15 @@ class SecurityConfig(
             .csrf { csrf ->
                 csrf.csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
                 // Disable CSRF for stateless API endpoints (JWT protected) and H2 console forms
-                csrf.ignoringRequestMatchers("/api/auth/**", "/api/webhooks/**", "/api/reservations/**", "/h2-console/**")
+                csrf.ignoringRequestMatchers(
+                    "/api/auth/**", 
+                    "/api/webhooks/**", 
+                    "/api/reservations/**", 
+                    "/api/payments/**",
+                    "/api/hotels/**",
+                    "/api/email/**",
+                    "/h2-console/**"
+                )
             }
             .cors { it.configurationSource(corsConfigurationSource()) }
             // Phase 11: Stateless session management

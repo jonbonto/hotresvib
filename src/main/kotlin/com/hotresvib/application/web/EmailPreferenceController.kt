@@ -3,6 +3,8 @@ package com.hotresvib.application.web
 import com.hotresvib.application.notification.EmailPreferenceService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
+import org.springframework.http.HttpStatus
 import org.slf4j.LoggerFactory
 
 /**
@@ -36,17 +38,13 @@ class EmailPreferenceController(
                     "message" to "You have been unsubscribed from emails."
                 ))
             } else {
-                ResponseEntity.status(400).body(mapOf(
-                    "status" to "error",
-                    "message" to "Failed to unsubscribe."
-                ))
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to unsubscribe")
             }
+        } catch (e: ResponseStatusException) {
+            throw e
         } catch (e: Exception) {
             logger.error("Error unsubscribing email: $email", e)
-            ResponseEntity.status(500).body(mapOf(
-                "status" to "error",
-                "message" to "An error occurred while processing your request."
-            ))
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while processing your request")
         }
     }
 
@@ -65,17 +63,13 @@ class EmailPreferenceController(
                     "message" to "You have been resubscribed to emails."
                 ))
             } else {
-                ResponseEntity.status(400).body(mapOf(
-                    "status" to "error",
-                    "message" to "Failed to resubscribe."
-                ))
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Failed to resubscribe")
             }
+        } catch (e: ResponseStatusException) {
+            throw e
         } catch (e: Exception) {
             logger.error("Error resubscribing email: $email", e)
-            ResponseEntity.status(500).body(mapOf(
-                "status" to "error",
-                "message" to "An error occurred while processing your request."
-            ))
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while processing your request")
         }
     }
 
@@ -105,10 +99,7 @@ class EmailPreferenceController(
             ResponseEntity.ok(response)
         } catch (e: Exception) {
             logger.error("Error checking status for email: $email", e)
-            ResponseEntity.status(500).body(mapOf(
-                "status" to "error",
-                "message" to "An error occurred while processing your request."
-            ))
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while processing your request")
         }
     }
 
@@ -120,10 +111,7 @@ class EmailPreferenceController(
     fun unsubscribeByToken(@PathVariable token: String): ResponseEntity<Map<String, String>> {
         return try {
             val user = userRepository.findByUnsubscribeToken(token)
-                ?: return ResponseEntity.status(404).body(mapOf(
-                    "status" to "error",
-                    "message" to "Invalid unsubscribe token"
-                ))
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid unsubscribe token")
 
             // Mark user as opted out for marketing and record unsubscribe entry
             val email = user.email.value
@@ -140,17 +128,13 @@ class EmailPreferenceController(
                     "message" to "You have been unsubscribed from marketing emails."
                 ))
             } else {
-                ResponseEntity.status(500).body(mapOf(
-                    "status" to "error",
-                    "message" to "Failed to unsubscribe."
-                ))
+                throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to unsubscribe")
             }
+        } catch (e: ResponseStatusException) {
+            throw e
         } catch (e: Exception) {
             logger.error("Error processing unsubscribe token: $token", e)
-            ResponseEntity.status(500).body(mapOf(
-                "status" to "error",
-                "message" to "An error occurred while processing your request."
-            ))
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while processing your request")
         }
     }
 }

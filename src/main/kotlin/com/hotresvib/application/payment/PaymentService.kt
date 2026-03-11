@@ -2,8 +2,10 @@ package com.hotresvib.application.payment
 
 import com.hotresvib.domain.payment.Payment
 import com.hotresvib.domain.payment.PaymentStatus
+import com.hotresvib.domain.reservation.ReservationStatus
 import com.hotresvib.domain.shared.ReservationId
 import com.hotresvib.domain.shared.Money
+import com.hotresvib.application.port.ReservationRepository
 import java.math.BigDecimal
 import org.springframework.stereotype.Service
 
@@ -20,7 +22,9 @@ interface PaymentService {
 }
 
 @Service
-class PaymentServiceImpl : PaymentService {
+class PaymentServiceImpl(
+    private val reservationRepository: ReservationRepository
+) : PaymentService {
     
     override fun processPayment(
         reservationId: ReservationId,
@@ -32,11 +36,19 @@ class PaymentServiceImpl : PaymentService {
         
         logPaymentAttempt(reservationId.value.toString(), amount, paymentMethod)
         
+        // Update reservation status to PENDING_PAYMENT (payment in progress)
+        val reservation = reservationRepository.findById(reservationId)
+        if (reservation != null) {
+            val pendingReservation = reservation.copy(status = ReservationStatus.PENDING_PAYMENT)
+            reservationRepository.save(pendingReservation)
+            logReservationPending(reservationId.value.toString())
+        }
+        
         return Payment(
             id = java.util.UUID.randomUUID(),
             reservationId = reservationId,
             amount = amount,
-            status = PaymentStatus.COMPLETED,
+            status = PaymentStatus.PENDING,
             paymentMethod = paymentMethod,
             transactionId = "TXN_" + java.util.UUID.randomUUID().toString().substring(0, 8).uppercase(),
             paymentIntentId = null,
@@ -76,6 +88,15 @@ class PaymentServiceImpl : PaymentService {
             Method: $method
             Status: SIMULATED PROCESSING
             ================================
+        """.trimIndent())
+    }
+
+    private fun logReservationPending(reservationId: String) {
+        println("""
+            ========== RESERVATION PENDING ==========
+            Reservation ID: $reservationId
+            Status: PENDING_PAYMENT (Payment initiated)
+            =========================================
         """.trimIndent())
     }
 

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.util.UUID
 
 /**
@@ -38,15 +39,15 @@ class AuthController(
         } catch (e: IllegalArgumentException) {
             when {
                 e.message?.contains("already registered") == true ->
-                    ResponseEntity.status(HttpStatus.CONFLICT).body(null)
+                    throw ResponseStatusException(HttpStatus.CONFLICT, e.message ?: "Email already registered")
                 e.message?.contains("does not meet requirements") == true ->
-                    ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+                    throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message ?: "Password does not meet requirements")
                 e.message?.contains("email", ignoreCase = true) == true ||
                 e.message?.contains("password", ignoreCase = true) == true ||
                 e.message?.contains("display name", ignoreCase = true) == true ->
-                    ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+                    throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message ?: "Invalid request")
                 else ->
-                    ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+                    throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message ?: "Invalid request")
             }
         }
     }
@@ -67,9 +68,9 @@ class AuthController(
         } catch (e: IllegalArgumentException) {
             when {
                 e.message?.contains("locked") == true ->
-                    ResponseEntity.status(HttpStatus.FORBIDDEN).body(null)
+                    throw ResponseStatusException(HttpStatus.FORBIDDEN, e.message ?: "Account is locked")
                 else ->
-                    ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null)
+                    throw ResponseStatusException(HttpStatus.UNAUTHORIZED, e.message ?: "Invalid email or password")
             }
         }
     }
@@ -84,7 +85,7 @@ class AuthController(
             val response = authenticationService.refresh(request)
             ResponseEntity.ok(response)
         } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null)
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, e.message ?: "Invalid refresh token")
         }
     }
 
@@ -93,14 +94,16 @@ class AuthController(
      * POST /api/auth/logout
      */
     @PostMapping("/logout")
-    fun logout(authentication: Authentication): ResponseEntity<LogoutResponse> {
-        return try {
-            val userId = UserId(UUID.fromString(authentication.name))
-            val response = authenticationService.logout(userId)
-            ResponseEntity.ok(response)
-        } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
+    fun logout(authentication: Authentication?): ResponseEntity<LogoutResponse> {
+        val auth = authentication ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required")
+        val userId = try {
+            UserId(UUID.fromString(auth.name))
+        } catch (e: IllegalArgumentException) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required")
         }
+
+        val response = authenticationService.logout(userId)
+        return ResponseEntity.ok(response)
     }
 
     /**
@@ -108,14 +111,16 @@ class AuthController(
      * GET /api/auth/me
      */
     @GetMapping("/me")
-    fun getCurrentUser(authentication: Authentication): ResponseEntity<UserResponse> {
-        return try {
-            val userId = UserId(UUID.fromString(authentication.name))
-            val response = authenticationService.getUserProfile(userId)
-            ResponseEntity.ok(response)
-        } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+    fun getCurrentUser(authentication: Authentication?): ResponseEntity<UserResponse> {
+        val auth = authentication ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required")
+        val userId = try {
+            UserId(UUID.fromString(auth.name))
+        } catch (e: IllegalArgumentException) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required")
         }
+
+        val response = authenticationService.getUserProfile(userId)
+        return ResponseEntity.ok(response)
     }
 
     /**
@@ -124,15 +129,17 @@ class AuthController(
      */
     @PutMapping("/me")
     fun updateCurrentUser(
-        authentication: Authentication,
+        authentication: Authentication?,
         @Valid @RequestBody request: UpdateProfileRequest
     ): ResponseEntity<UserResponse> {
-        return try {
-            val userId = UserId(UUID.fromString(authentication.name))
-            val response = authenticationService.updateProfile(userId, request)
-            ResponseEntity.ok(response)
-        } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+        val auth = authentication ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required")
+        val userId = try {
+            UserId(UUID.fromString(auth.name))
+        } catch (e: IllegalArgumentException) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required")
         }
+
+        val response = authenticationService.updateProfile(userId, request)
+        return ResponseEntity.ok(response)
     }
 }
