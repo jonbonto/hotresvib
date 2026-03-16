@@ -31,4 +31,9 @@ class InMemoryUserRepository : UserRepository {
         }
         return user
     }
+
+    override fun findAll(): List<User> =
+        synchronized(lock) {
+            storage.values.toList()
+        }
 }

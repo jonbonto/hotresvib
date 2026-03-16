@@ -27,6 +27,24 @@ data class Hotel(
 
     @Column(name = "is_featured", nullable = false)
     val isFeatured: Boolean = false,
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    val description: String? = null,
+
+    @Column(name = "address", length = 500)
+    val address: String? = null,
+
+    @Column(name = "phone", length = 50)
+    val phone: String? = null,
+
+    @Column(name = "email", length = 255)
+    val email: String? = null,
+
+    @Column(name = "star_rating")
+    val starRating: Int = 0,
+
+    @Column(name = "image_url", length = 500)
+    val imageUrl: String? = null,
     
     // Phase 11: Optimistic locking
     @Version

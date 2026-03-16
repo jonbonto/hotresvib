@@ -1,6 +1,7 @@
 package com.hotresvib.application.web
 
 import io.swagger.v3.oas.annotations.Hidden
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -19,6 +20,8 @@ data class ErrorResponse(
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+
+    private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
 
     @ExceptionHandler(ResponseStatusException::class)
     fun handleResponseStatusException(
@@ -71,6 +74,7 @@ class GlobalExceptionHandler {
         ex: Exception,
         request: WebRequest
     ): ResponseEntity<ErrorResponse> {
+        log.error("Unhandled exception at {}: {}", request.getDescription(false), ex.message, ex)
         val errorResponse = ErrorResponse(
             message = "An unexpected error occurred",
             status = HttpStatus.INTERNAL_SERVER_ERROR.value(),

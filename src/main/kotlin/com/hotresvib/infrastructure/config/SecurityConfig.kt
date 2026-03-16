@@ -36,6 +36,8 @@ class SecurityConfig(
                     "/api/payments/**",
                     "/api/hotels/**",
                     "/api/email/**",
+                    "/api/reviews/**",
+                    "/api/admin/**",
                     "/h2-console/**"
                 )
             }
@@ -61,10 +63,12 @@ class SecurityConfig(
                 it.requestMatchers("/api/hotels/**").permitAll()
                 it.requestMatchers("/api/search/**").permitAll()
                 it.requestMatchers("/api/reservations/check-availability").permitAll()
+                it.requestMatchers("/api/reviews/hotel/**").permitAll()
                 it.requestMatchers("/api/webhooks/**").permitAll()
                 it.requestMatchers("/swagger-ui/**","/swagger-ui.html","/swagger-ui/index.html").permitAll()
                 it.requestMatchers("/v3/api-docs/**").permitAll()
                 it.requestMatchers("/h2-console/**").permitAll()
+                it.requestMatchers("/api/admin/**").hasRole("ADMIN")
                 it.anyRequest().authenticated()
             }
             // Phase 11: Add security filters

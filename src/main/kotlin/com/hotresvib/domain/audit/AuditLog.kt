@@ -2,6 +2,7 @@ package com.hotresvib.domain.audit
 
 import jakarta.persistence.*
 import java.time.Instant
+import java.util.UUID
 
 /**
  * Entity for storing audit logs of security-sensitive operations.
@@ -12,7 +13,7 @@ import java.time.Instant
 data class AuditLog(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    val id: String? = null,
+    val id: UUID? = null,
     
     @Column(name = "timestamp", nullable = false)
     val timestamp: Instant,

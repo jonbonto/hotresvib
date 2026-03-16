@@ -9,6 +9,7 @@ interface HotelRepository {
     fun findById(id: HotelId): Hotel?
     fun findAll(): List<Hotel>
     fun save(hotel: Hotel): Hotel
+    fun deleteById(id: HotelId)
     
     // Search methods for Phase 7
     fun findByCityContainingIgnoreCase(city: String, pageable: Pageable): Page<Hotel>

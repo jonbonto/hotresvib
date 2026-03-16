@@ -38,5 +38,17 @@ data class Room(
         AttributeOverride(name = "amount", column = Column(name = "base_rate_amount", nullable = false)),
         AttributeOverride(name = "currency", column = Column(name = "base_rate_currency", nullable = false, length = 3))
     )
-    val baseRate: Money
+    val baseRate: Money,
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    val description: String? = null,
+
+    @Column(name = "capacity")
+    val capacity: Int = 2,
+
+    @Column(name = "amenities", columnDefinition = "TEXT")
+    val amenities: String? = null,
+
+    @Column(name = "image_url", length = 500)
+    val imageUrl: String? = null
 )

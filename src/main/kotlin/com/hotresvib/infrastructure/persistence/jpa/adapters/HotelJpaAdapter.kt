@@ -19,6 +19,8 @@ class HotelJpaAdapter(private val repo: HotelJpaRepository) : HotelRepository {
 
     override fun save(hotel: Hotel): Hotel = repo.save(hotel)
     
+    override fun deleteById(id: HotelId) = repo.deleteById(id.value)
+    
     override fun findByCityContainingIgnoreCase(city: String, pageable: Pageable): Page<Hotel> =
         repo.findByCityContainingIgnoreCase(city, pageable)
     

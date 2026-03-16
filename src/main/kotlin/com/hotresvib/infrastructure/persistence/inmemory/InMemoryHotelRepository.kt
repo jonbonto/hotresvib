@@ -54,6 +54,10 @@ class InMemoryHotelRepository : HotelRepository {
     override fun findAllPaged(pageable: Pageable): Page<Hotel> {
         return paginateList(hotels.values.toList(), pageable)
     }
+
+    override fun deleteById(id: HotelId) {
+        hotels.remove(id)
+    }
     
     private fun paginateList(list: List<Hotel>, pageable: Pageable): Page<Hotel> {
         val start = pageable.offset.toInt()

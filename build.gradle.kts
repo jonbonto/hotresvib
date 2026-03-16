@@ -25,7 +25,7 @@ dependencies {
     implementation("com.h2database:h2")
     implementation("org.postgresql:postgresql")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4")
     implementation("com.stripe:stripe-java:24.9.0")
     implementation(libs.jjwt.api)
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")

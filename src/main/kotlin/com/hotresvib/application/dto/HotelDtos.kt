@@ -7,7 +7,14 @@ import java.util.UUID
 data class HotelRequest(
     val name: String,
     val city: String,
-    val country: String
+    val country: String,
+    val description: String? = null,
+    val address: String? = null,
+    val phone: String? = null,
+    val email: String? = null,
+    val starRating: Int? = null,
+    val isFeatured: Boolean? = null,
+    val imageUrl: String? = null
 )
 
 data class HotelResponse(
@@ -21,7 +28,11 @@ data class RoomRequest(
     val number: String,
     val type: String,  // SINGLE, DOUBLE, SUITE
     val basePrice: Double,
-    val currency: String
+    val currency: String,
+    val description: String? = null,
+    val capacity: Int = 2,
+    val amenities: String? = null,
+    val imageUrl: String? = null
 )
 
 data class RoomResponse(
@@ -30,7 +41,11 @@ data class RoomResponse(
     val number: String,
     val type: String,
     val basePrice: Double,
-    val currency: String
+    val currency: String,
+    val description: String? = null,
+    val capacity: Int = 2,
+    val amenities: String? = null,
+    val imageUrl: String? = null
 )
 
 data class AvailabilityRequest(

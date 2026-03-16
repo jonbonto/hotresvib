@@ -9,4 +9,5 @@ interface UserRepository {
     fun findByEmail(email: EmailAddress): User?
     fun findByUnsubscribeToken(token: String): User?
     fun save(user: User): User
+    fun findAll(): List<User>
 }

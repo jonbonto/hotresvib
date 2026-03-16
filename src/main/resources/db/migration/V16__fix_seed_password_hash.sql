@@ -1,0 +1,14 @@
+-- V16: Fix seed user password hashes
+-- The V15 hash was invalid. This updates all seed users with the correct BCrypt hash for "Password1!"
+
+UPDATE users SET password_hash = '$2a$12$rJeQ/tzF5Q8q2fP07.jCN./CiVVxC7i2hWm.UmB2GNr19pRVwO93y'
+WHERE id IN (
+    'a0000000-0000-0000-0000-000000000001',
+    'a0000000-0000-0000-0000-000000000002',
+    'a0000000-0000-0000-0000-000000000003',
+    'a0000000-0000-0000-0000-000000000004',
+    'a0000000-0000-0000-0000-000000000005',
+    'a0000000-0000-0000-0000-000000000006',
+    'a0000000-0000-0000-0000-000000000007',
+    'a0000000-0000-0000-0000-000000000008'
+);

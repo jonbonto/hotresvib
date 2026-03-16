@@ -8,7 +8,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
  */
 fun main() {
     val encoder = BCryptPasswordEncoder(12)
-    val passwords = listOf("RahasiaCus", "admin123")
+    val passwords = listOf("RahasiaCus", "admin123", "Password1!")
     passwords.forEach { pw ->
         println("PASSWORD=${pw} -> ${encoder.encode(pw)}")
     }

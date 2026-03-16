@@ -18,4 +18,6 @@ class UserJpaAdapter(private val repo: UserJpaRepository) : UserRepository {
     override fun findByUnsubscribeToken(token: String): User? = repo.findByUnsubscribeToken(token)
 
     override fun save(user: User): User = repo.save(user)
+    
+    override fun findAll(): List<User> = repo.findAll()
 }

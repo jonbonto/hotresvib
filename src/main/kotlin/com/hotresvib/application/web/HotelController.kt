@@ -23,7 +23,8 @@ import java.math.BigDecimal
 @CrossOrigin(origins = ["*"])
 class HotelController(
     private val hotelRepository: HotelRepository,
-    private val roomRepository: RoomRepository
+    private val roomRepository: RoomRepository,
+    private val reviewRepository: ReviewRepository
 ) {
 
     @GetMapping
@@ -44,17 +45,28 @@ class HotelController(
     }
 
     @GetMapping("/{id}")
-    fun getHotel(@PathVariable id: UUID): ResponseEntity<HotelResponse> {
+    fun getHotel(@PathVariable id: UUID): ResponseEntity<HotelDetailResponse> {
         return try {
-            // Use a safe lookup by comparing raw UUID to avoid potential repository ID conversion issues
             val hotel = hotelRepository.findAll().find { it.id.value == id }
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Hotel not found")
 
-            ResponseEntity.ok(HotelResponse(
+            val roomCount = roomRepository.findAll().count { it.hotelId == hotel.id }
+            val avgRating = reviewRepository.averageRatingByHotelId(hotel.id) ?: 0.0
+            val reviewCount = reviewRepository.countByHotelId(hotel.id)
+
+            ResponseEntity.ok(HotelDetailResponse(
                 id = hotel.id.value,
                 name = hotel.name.value,
                 city = hotel.city,
-                country = hotel.country
+                country = hotel.country,
+                description = hotel.description,
+                address = hotel.address,
+                phone = hotel.phone,
+                email = hotel.email,
+                starRating = hotel.starRating,
+                isFeatured = hotel.isFeatured,
+                imageUrl = hotel.imageUrl,
+                roomCount = roomCount
             ))
         } catch (e: ResponseStatusException) {
             throw e
@@ -65,21 +77,35 @@ class HotelController(
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    fun createHotel(@RequestBody request: HotelRequest): ResponseEntity<HotelResponse> {
+    fun createHotel(@RequestBody request: HotelRequest): ResponseEntity<HotelDetailResponse> {
         return try {
             val hotel = Hotel(
                 id = HotelId.generate(),
                 name = HotelName(request.name),
                 city = request.city,
-                country = request.country
+                country = request.country,
+                description = request.description,
+                address = request.address,
+                phone = request.phone,
+                email = request.email,
+                starRating = request.starRating ?: 0,
+                isFeatured = request.isFeatured ?: false,
+                imageUrl = request.imageUrl
             )
             hotelRepository.save(hotel)
 
-            ResponseEntity.status(HttpStatus.CREATED).body(HotelResponse(
+            ResponseEntity.status(HttpStatus.CREATED).body(HotelDetailResponse(
                 id = hotel.id.value,
                 name = hotel.name.value,
                 city = hotel.city,
-                country = hotel.country
+                country = hotel.country,
+                description = hotel.description,
+                address = hotel.address,
+                phone = hotel.phone,
+                email = hotel.email,
+                starRating = hotel.starRating,
+                isFeatured = hotel.isFeatured,
+                imageUrl = hotel.imageUrl
             ))
         } catch (e: IllegalArgumentException) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message ?: "Invalid hotel data")
@@ -100,7 +126,11 @@ class HotelController(
                         number = room.number.value,
                         type = room.type.toString(),
                         basePrice = room.baseRate.amount.toDouble(),
-                        currency = room.baseRate.currency
+                        currency = room.baseRate.currency,
+                        description = room.description,
+                        capacity = room.capacity,
+                        amenities = room.amenities,
+                        imageUrl = room.imageUrl
                     )
                 }
             ResponseEntity.ok(rooms)
@@ -124,7 +154,11 @@ class HotelController(
                 hotelId = HotelId(hotelId),
                 number = RoomNumber(request.number),
                 type = RoomType.valueOf(request.type),
-                baseRate = Money(request.basePrice.toBigDecimal(), request.currency)
+                baseRate = Money(request.basePrice.toBigDecimal(), request.currency),
+                description = request.description,
+                capacity = request.capacity,
+                amenities = request.amenities,
+                imageUrl = request.imageUrl
             )
             roomRepository.save(room)
 
@@ -134,7 +168,11 @@ class HotelController(
                 number = room.number.value,
                 type = room.type.toString(),
                 basePrice = room.baseRate.amount.toDouble(),
-                currency = room.baseRate.currency
+                currency = room.baseRate.currency,
+                description = room.description,
+                capacity = room.capacity,
+                amenities = room.amenities,
+                imageUrl = room.imageUrl
             ))
         } catch (e: ResponseStatusException) {
             throw e
