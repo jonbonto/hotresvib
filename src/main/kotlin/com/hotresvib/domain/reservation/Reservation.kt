@@ -13,6 +13,8 @@ enum class ReservationStatus {
     DRAFT,              // Initial state when reservation created
     PENDING_PAYMENT,    // Payment initiated, waiting for confirmation
     CONFIRMED,          // Payment successful, reservation confirmed
+    CHECKED_IN,         // Guest has checked in
+    CHECKED_OUT,        // Guest has checked out
     CANCELLED,          // User cancelled before check-in
     EXPIRED,            // Payment timeout reached
     REFUNDED            // Cancelled reservation with refund processed

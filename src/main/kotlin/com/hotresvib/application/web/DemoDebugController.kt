@@ -22,8 +22,7 @@ class DemoDebugController(
                 "id" to user.id.value,
                 "email" to user.email.value,
                 "displayName" to user.displayName,
-                "role" to user.role.name,
-                "passwordHash" to user.passwordHash
+                "role" to user.role.name
             )
         }
     } catch (e: Exception) {

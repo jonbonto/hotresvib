@@ -26,7 +26,8 @@ class AdminController(
     private val roomRepository: RoomRepository,
     private val reservationRepository: ReservationRepository,
     private val paymentRepository: PaymentRepository,
-    private val reviewRepository: ReviewRepository
+    private val reviewRepository: ReviewRepository,
+    private val reservationService: com.hotresvib.application.service.ReservationApplicationService
 ) {
 
     // --- User Management ---
@@ -139,16 +140,16 @@ class AdminController(
         if (reservation.status != ReservationStatus.CONFIRMED) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Reservation must be CONFIRMED to check in")
         }
-        // We reuse CONFIRMED status but track check-in through audit
+        val updated = reservationService.checkIn(reservation.id)
         return ResponseEntity.ok(ReservationResponse(
-            id = reservation.id.value,
-            userId = reservation.userId.value,
-            roomId = reservation.roomId.value,
-            startDate = reservation.stay.startDate,
-            endDate = reservation.stay.endDate,
-            totalPrice = reservation.totalAmount.amount.toDouble(),
-            status = "CHECKED_IN",
-            createdAt = reservation.createdAt.toString()
+            id = updated.id.value,
+            userId = updated.userId.value,
+            roomId = updated.roomId.value,
+            startDate = updated.stay.startDate,
+            endDate = updated.stay.endDate,
+            totalPrice = updated.totalAmount.amount.toDouble(),
+            status = updated.status.toString(),
+            createdAt = updated.createdAt.toString()
         ))
     }
 
@@ -158,18 +159,19 @@ class AdminController(
     ): ResponseEntity<ReservationResponse> {
         val reservation = reservationRepository.findById(com.hotresvib.domain.shared.ReservationId(id))
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation not found")
-        if (reservation.status != ReservationStatus.CONFIRMED) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Reservation must be CONFIRMED to check out")
+        if (reservation.status != ReservationStatus.CHECKED_IN) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Reservation must be CHECKED_IN to check out")
         }
+        val updated = reservationService.checkOut(reservation.id)
         return ResponseEntity.ok(ReservationResponse(
-            id = reservation.id.value,
-            userId = reservation.userId.value,
-            roomId = reservation.roomId.value,
-            startDate = reservation.stay.startDate,
-            endDate = reservation.stay.endDate,
-            totalPrice = reservation.totalAmount.amount.toDouble(),
-            status = "CHECKED_OUT",
-            createdAt = reservation.createdAt.toString()
+            id = updated.id.value,
+            userId = updated.userId.value,
+            roomId = updated.roomId.value,
+            startDate = updated.stay.startDate,
+            endDate = updated.stay.endDate,
+            totalPrice = updated.totalAmount.amount.toDouble(),
+            status = updated.status.toString(),
+            createdAt = updated.createdAt.toString()
         ))
     }
 

@@ -149,11 +149,29 @@ class ReservationApplicationService(
         return reservationRepository.save(reservation.copy(status = ReservationStatus.REFUNDED))
     }
 
+    @Transactional
+    fun checkIn(reservationId: ReservationId): Reservation {
+        val reservation = reservationRepository.findById(reservationId)
+            ?: throw IllegalArgumentException("Reservation not found: $reservationId")
+        validateStateTransition(reservation.status, ReservationStatus.CHECKED_IN)
+        return reservationRepository.save(reservation.copy(status = ReservationStatus.CHECKED_IN))
+    }
+
+    @Transactional
+    fun checkOut(reservationId: ReservationId): Reservation {
+        val reservation = reservationRepository.findById(reservationId)
+            ?: throw IllegalArgumentException("Reservation not found: $reservationId")
+        validateStateTransition(reservation.status, ReservationStatus.CHECKED_OUT)
+        return reservationRepository.save(reservation.copy(status = ReservationStatus.CHECKED_OUT))
+    }
+
     private fun validateStateTransition(from: ReservationStatus, to: ReservationStatus) {
         val validTransitions = mapOf(
             ReservationStatus.DRAFT to setOf(ReservationStatus.PENDING_PAYMENT, ReservationStatus.CANCELLED, ReservationStatus.EXPIRED),
             ReservationStatus.PENDING_PAYMENT to setOf(ReservationStatus.CONFIRMED, ReservationStatus.EXPIRED),
-            ReservationStatus.CONFIRMED to setOf(ReservationStatus.CANCELLED),
+            ReservationStatus.CONFIRMED to setOf(ReservationStatus.CHECKED_IN, ReservationStatus.CANCELLED),
+            ReservationStatus.CHECKED_IN to setOf(ReservationStatus.CHECKED_OUT),
+            ReservationStatus.CHECKED_OUT to emptySet(),
             ReservationStatus.CANCELLED to setOf(ReservationStatus.REFUNDED),
             ReservationStatus.EXPIRED to emptySet(),
             ReservationStatus.REFUNDED to emptySet()
