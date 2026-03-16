@@ -44,7 +44,7 @@ data class RoomSearchResponse(
     val country: String,
     val number: String,
     val type: RoomType,
-    val baseRate: BigDecimal,
+    val basePrice: BigDecimal,
     val currency: String,
     val isAvailable: Boolean?
 ) {
@@ -58,7 +58,7 @@ data class RoomSearchResponse(
                 country = hotel.country,
                 number = room.number.value,
                 type = room.type,
-                baseRate = room.baseRate.amount,
+                basePrice = room.baseRate.amount,
                 currency = room.baseRate.currency,
                 isAvailable = isAvailable
             )
@@ -77,7 +77,7 @@ data class RoomAvailabilityResponse(
     val country: String,
     val number: String,
     val type: RoomType,
-    val baseRate: BigDecimal,
+    val basePrice: BigDecimal,
     val currency: String,
     val totalPrice: BigDecimal,
     val nights: Int
@@ -92,7 +92,7 @@ data class RoomAvailabilityResponse(
                 country = hotel.country,
                 number = room.number.value,
                 type = room.type,
-                baseRate = room.baseRate.amount,
+                basePrice = room.baseRate.amount,
                 currency = room.baseRate.currency,
                 totalPrice = totalPrice.amount,
                 nights = nights
